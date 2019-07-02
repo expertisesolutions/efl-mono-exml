@@ -1,4 +1,6 @@
 using System;
+using System.Text;
+using System.Linq;
 using System.Reflection;
 using System.Collections.Generic;
 
@@ -45,6 +47,11 @@ namespace Model
         public string Name { get; private set; }
         public TypeRef Type { get; private set; }
         public ParameterDirection Direction { get; private set; }
+
+        public override string ToString()
+        {
+            return $"{Type} {Name}"; // FIXME Add support for direction
+        }
     }
 
     public class Function
@@ -52,14 +59,69 @@ namespace Model
         public string Name { get; private set; }
         public TypeRef ReturnType { get; private set; }
         public List<Parameter> Parameters { get; private set; }
+        public bool IsFuncPtr { get; private set; }
+
+        private Function()
+        {
+            Parameters = new List<Parameter>();
+        }
 
         public static Function From(System.Type type)
         {
             Logger.Info($"Creating function from type: {type.FullName}");
             var obj = new Function();
             obj.Name = type.FullName;
+            obj.IsFuncPtr = true;
+
+            var methInfo = type.GetMethod("Invoke");
+
+            obj.ReturnType = TypeRef.From(methInfo.ReturnType);
+
 
             return obj;
+        }
+
+        public static Function From(ConstructorInfo ctor)
+        {
+            Logger.Info($"Creating function from constructor: {ctor.Name}");
+            var obj = new Function();
+            obj.Name = ctor.Name;
+            obj.IsFuncPtr = false;
+
+            obj.ReturnType = TypeRef.From(ctor.DeclaringType);
+
+            return obj;
+        }
+
+        public override string ToString()
+        {
+            StringBuilder sb = new StringBuilder();
+
+            if (IsFuncPtr)
+            {
+                sb.Append("(");
+            }
+
+            sb.Append(Name);
+
+            if (IsFuncPtr)
+            {
+                sb.Append(")");
+            }
+
+
+            sb.Append("(");
+
+            if (Parameters.Count > 0)
+            {
+                sb.Append(Parameters.Select(i => i.ToString()).Aggregate((current, next) => current + ", " + next));
+            }
+
+            sb.Append(")");
+
+            sb.Append($" -> {ReturnType}");
+
+            return sb.ToString();
         }
     }
 
@@ -68,7 +130,7 @@ namespace Model
         public string Name { get; private set; }
         public List<EnumField> Fields {get; private set; }
 
-        public Enum()
+        private Enum()
         {
             Fields = new List<EnumField>();
         }
@@ -112,7 +174,7 @@ namespace Model
         public string Name { get; private set; }
         public List<StructField> Fields { get; private set; }
 
-        public Struct()
+        private Struct()
         {
             Fields = new List<StructField>();
         }
@@ -145,11 +207,37 @@ namespace Model
         public bool IsInterface { get; private set; }
         public bool IsAbstract { get; private set; }
 
+        private Class()
+        {
+            Constructors = new List<Function>();
+            Methods = new List<Function>();
+            Interfaces = new List<TypeRef>();
+        }
+
         public static Class From(System.Type type)
         {
             Logger.Info($"Creating class from type: {type.FullName}");
             var obj = new Class();
             obj.Name = type.FullName;
+
+            obj.IsInterface = type.IsInterface;
+            obj.IsAbstract = type.IsAbstract;
+
+            if (type.BaseType != null)
+            {
+                obj.Parent = TypeRef.From(type.BaseType);
+            }
+
+            foreach(var iface in type.GetInterfaces())
+            {
+                obj.Interfaces.Add(TypeRef.From(iface));
+            }
+
+            // No to pass BindingFlags, already gets only the public constructors by default
+            foreach(var ctor in type.GetConstructors())
+            {
+                obj.Constructors.Add(Function.From(ctor));
+            }
 
             return obj;
         }

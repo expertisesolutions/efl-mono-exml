@@ -24,6 +24,21 @@ public class Dumper
             foreach (var item in api.Classes)
             {
                 file.WriteLine($"- {item.Name}");
+                file.WriteLine($"  - IsInterface: {item.IsInterface}");
+                file.WriteLine($"  - IsAbstract: {item.IsAbstract}");
+                file.WriteLine($"  - Parent: {item.Parent}");
+
+                file.WriteLine($"  - Interfaces:");
+                foreach (var iface in item.Interfaces)
+                {
+                    file.WriteLine($"    - {iface}");
+                }
+
+                file.WriteLine($"  - Constructors:");
+                foreach (var ctor in item.Constructors)
+                {
+                    file.WriteLine($"    - {ctor}");
+                }
             }
             file.WriteLine("--- # Enums");
             foreach (var item in api.Enums)
@@ -31,7 +46,7 @@ public class Dumper
                 file.WriteLine($"- {item.Name}");
                 foreach (var field in item.Fields)
                 {
-                    file.WriteLine($"    - {field}");
+                    file.WriteLine($"  - {field}");
                 }
             }
             file.WriteLine("--- # Structs");
@@ -40,13 +55,13 @@ public class Dumper
                 file.WriteLine($"- {item.Name}");
                 foreach (var field in item.Fields)
                 {
-                    file.WriteLine($"    - Field: {field.Name} : {field.Type}");
+                    file.WriteLine($"  - Field: {field.Name} : {field.Type}");
                 }
             }
             file.WriteLine("--- # FunctionPointers");
             foreach (var item in api.FunctionPointers)
             {
-                file.WriteLine($"- {item.Name}");
+                file.WriteLine($"- {item}");
             }
         }
     }
