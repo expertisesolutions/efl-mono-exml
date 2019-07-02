@@ -266,6 +266,11 @@ namespace Model
         }
     }
 
+    public class Property
+    {
+        public string Name { get; private set; }
+    }
+
     public class Class
     {
         public string Name { get; private set; }
@@ -273,6 +278,7 @@ namespace Model
         public List<Function> Methods { get; private set; }
         public TypeRef Parent { get; private set; }
         public List<TypeRef> Interfaces { get; private set; }
+        public List<Property> Properties { get; private set; }
 
         public bool IsInterface { get; private set; }
         public bool IsAbstract { get; private set; }
@@ -316,6 +322,10 @@ namespace Model
                 {
                     obj.Methods.Add(Function.From(method));
                 }
+            }
+
+            foreach(var property in type.GetProperties())
+            {
             }
 
             return obj;
