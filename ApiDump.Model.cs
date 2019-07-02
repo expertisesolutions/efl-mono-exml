@@ -20,18 +20,26 @@ namespace Model
     {
         In,
         Out,
-        Inout,
+        InOut,
         Unkown,
     }
 
     public class TypeRef
     {
         public string Name { get; private set; }
+        public bool IsReference { get; private set; }
 
         public static TypeRef From(System.Type type)
         {
             var obj = new TypeRef();
             obj.Name = type.FullName;
+
+            obj.IsReference = type.IsByRef;
+
+            if (obj.IsReference)
+            {
+                obj.Name = obj.Name.Remove(obj.Name.Length - 1);
+            }
 
             return obj;
         }
@@ -50,8 +58,21 @@ namespace Model
 
         public override string ToString()
         {
-            var ret = (Direction == ParameterDirection.Out) ? "out " : "";
-            return $"{ret}{Type} {Name}";
+            string direction;
+
+            switch (Direction)
+            {
+                case ParameterDirection.Out:
+                    direction = "out ";
+                    break;
+                case ParameterDirection.InOut:
+                    direction = "ref ";
+                    break;
+                default:
+                    direction = "";
+                    break;
+            }
+            return $"{direction}{Type} {Name}";
         }
 
         public static Parameter From(ParameterInfo param)
@@ -70,6 +91,10 @@ namespace Model
             if (param.IsOut)
             {
                 return ParameterDirection.Out;
+            }
+            else if (param.ParameterType.IsByRef)
+            {
+                return ParameterDirection.InOut;
             }
 
             return ParameterDirection.In;
