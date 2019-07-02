@@ -39,6 +39,12 @@ public class Dumper
                 {
                     file.WriteLine($"    - {ctor}");
                 }
+
+                file.WriteLine($"  - Methods:");
+                foreach (var method in item.Methods)
+                {
+                    file.WriteLine($"    - {method}");
+                }
             }
             file.WriteLine("--- # Enums");
             foreach (var item in api.Enums)

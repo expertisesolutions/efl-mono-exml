@@ -147,6 +147,22 @@ namespace Model
             return obj;
         }
 
+        public static Function From(MethodInfo method)
+        {
+            Logger.Info($"Creating function from method: {method.Name}");
+
+            var obj = new Function();
+
+            obj.Name = method.Name;
+            obj.IsFuncPtr = false;
+
+            obj.ReturnType = TypeRef.From(method.ReturnType);
+
+            obj.Parameters = ParseParameters(method.GetParameters());
+
+            return obj;
+        }
+
         public override string ToString()
         {
             StringBuilder sb = new StringBuilder();
@@ -291,6 +307,15 @@ namespace Model
             foreach(var ctor in type.GetConstructors())
             {
                 obj.Constructors.Add(Function.From(ctor));
+            }
+
+            foreach(var method in type.GetMethods())
+            {
+                // Skip anonymous property accessors (get_Name)
+                if (!method.IsSpecialName)
+                {
+                    obj.Methods.Add(Function.From(method));
+                }
             }
 
             return obj;
