@@ -1,4 +1,5 @@
 using System;
+using System.Reflection;
 using System.Collections.Generic;
 
 using ApiDump.Logging;
@@ -31,6 +32,11 @@ namespace Model
             obj.Name = type.FullName;
 
             return obj;
+        }
+
+        public override string ToString()
+        {
+            return Name;
         }
     }
 
@@ -90,17 +96,39 @@ namespace Model
     {
         public string Name { get; private set; }
         public TypeRef Type { get; private set; }
+
+        public static StructField From(FieldInfo field)
+        {
+            var ret = new StructField();
+            ret.Name = field.Name;
+            ret.Type = TypeRef.From(field.FieldType);
+
+            return ret;
+        }
     }
 
     public class Struct
     {
         public string Name { get; private set; }
+        public List<StructField> Fields { get; private set; }
+
+        public Struct()
+        {
+            Fields = new List<StructField>();
+        }
 
         public static Struct From(System.Type type)
         {
             Logger.Info($"Creating struct from type: {type.FullName}");
             var obj = new Struct();
             obj.Name = type.FullName;
+
+            var fields = type.GetFields(BindingFlags.Public | BindingFlags.Instance);
+
+            foreach(var field in fields)
+            {
+                obj.Fields.Add(StructField.From(field));
+            }
 
             return obj;
         }

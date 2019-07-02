@@ -38,6 +38,10 @@ public class Dumper
             foreach (var item in api.Structs)
             {
                 file.WriteLine($"- {item.Name}");
+                foreach (var field in item.Fields)
+                {
+                    file.WriteLine($"    - Field: {field.Name} : {field.Type}");
+                }
             }
             file.WriteLine("--- # FunctionPointers");
             foreach (var item in api.FunctionPointers)
