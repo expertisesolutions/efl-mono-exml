@@ -5,65 +5,25 @@ using System.Collections.Generic;
 namespace ApiDump
 {
 
-    using ClassName = String;
-
-    public enum ParameterDirection
-    {
-        In,
-        Out,
-        Inout,
-        Unkown,
-    }
-
-    public class TypeRef
-    {
-        public string Name { get; private set; }
-    }
-
-    public class Parameter
-    {
-        public string Name { get; private set; }
-        public TypeRef Type { get; private set; }
-        public ParameterDirection Direction { get; private set; }
-    }
-
-    public class Function
-    {
-        public string Name { get; private set; }
-        public TypeRef ReturnType { get; private set; }
-        public List<Parameter> Parameters { get; private set; }
-    }
-
-    public class Class
-    {
-        public string Name { get; private set; }
-        public List<Function> Methods { get; private set; }
-        public TypeRef Parent { get; private set; }
-        public List<TypeRef> Interfaces { get; private set; }
-
-        public bool IsInterface { get; private set; }
-        public bool IsAbstract { get; private set; }
-
-        /// <summary> Extracts API information from the given type.</summary>
-        public Class(System.Type type)
-        {
-        }
-    }
-
     public class API
     {
-        public List<Class> Classes { get; private set; }
-        public List<Function> FunctionPointers { get; private set; }
-        // FIXME Structs, enums, etc...
+        public List<Model.Class> Classes { get; private set; }
+        public List<Model.Function> FunctionPointers { get; private set; }
+        public List<Model.Enum> Enums { get; private set; }
+        public List<Model.Struct> Structs { get; private set; }
+
+        private API()
+        {
+            Classes = new List<Model.Class>();
+            FunctionPointers = new List<Model.Function>();
+            Enums = new List<Model.Enum>();
+            Structs = new List<Model.Struct>();
+        }
 
         public void AddEntity(Type entity)
         {
 
         }
-    }
-
-    class ApiDumper
-    {
 
         private static bool IsGeneratedEntity(Type type)
         {
@@ -80,29 +40,67 @@ namespace ApiDump
             return false;
         }
 
+        private enum EntityKind
+        {
+            Class,
+            Enum,
+            Function,
+            Struct,
+        }
+
+        private static EntityKind GetEntityKind(Type type)
+        {
+            if (type.IsEnum)
+            {
+                return EntityKind.Enum;
+            }
+
+            if (type.IsValueType)
+            {
+                // Enums are also ValueTypes, so we check it first above
+                return EntityKind.Struct;
+            }
+
+            if (typeof(MulticastDelegate).IsAssignableFrom(type.BaseType))
+            {
+                return EntityKind.Function;
+            }
+
+            return EntityKind.Class;
+        }
+
         public static API Parse(string filename)
         {
             var assembly = Assembly.LoadFile(filename);
+            var ret = new API();
 
             foreach (var exportedType in assembly.GetExportedTypes())
             {
-                if (IsGeneratedEntity(exportedType))
+                if (!IsGeneratedEntity(exportedType))
                 {
-                    Console.WriteLine($"Got exported type: {exportedType}");
+                    continue;
+                }
+
+                switch (GetEntityKind(exportedType))
+                {
+                    case EntityKind.Class:
+                        ret.Classes.Add(Model.Class.From(exportedType));
+                        break;
+                    case EntityKind.Enum:
+                        ret.Enums.Add(Model.Enum.From(exportedType));
+                        break;
+                    case EntityKind.Function:
+                        ret.FunctionPointers.Add(Model.Function.From(exportedType));
+                        break;
+                    case EntityKind.Struct:
+                        ret.Structs.Add(Model.Struct.From(exportedType));
+                        break;
+                    default:
+                        throw new ArgumentException($"Failed to get entity Type of type {exportedType.FullName}");
                 }
             }
 
-            return new API();
-        }
-        static void Main(string[] args)
-        {
-            if (args.Length == 0)
-            {
-                Console.WriteLine("Must provide a filename");
-                return;
-            }
-
-            ApiDumper.Parse(args[0]);
+            return ret;
         }
     }
 }
