@@ -29,6 +29,10 @@ public class Dumper
             foreach (var item in api.Enums)
             {
                 file.WriteLine($"- {item.Name}");
+                foreach (var field in item.Fields)
+                {
+                    file.WriteLine($"    - {field}");
+                }
             }
             file.WriteLine("--- # Structs");
             foreach (var item in api.Structs)

@@ -62,11 +62,25 @@ namespace Model
         public string Name { get; private set; }
         public List<EnumField> Fields {get; private set; }
 
+        public Enum()
+        {
+            Fields = new List<EnumField>();
+        }
+
         public static Enum From(System.Type type)
         {
             Logger.Info($"Creating enum from type: {type.FullName}");
             var obj = new Enum();
             obj.Name = type.FullName;
+
+            foreach(var field in type.GetFields())
+            {
+                // Avoid the `value__` field
+                if (field.IsLiteral)
+                {
+                    obj.Fields.Add(field.Name);
+                }
+            }
 
             return obj;
         }
