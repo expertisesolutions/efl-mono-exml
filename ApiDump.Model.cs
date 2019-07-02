@@ -50,7 +50,29 @@ namespace Model
 
         public override string ToString()
         {
-            return $"{Type} {Name}"; // FIXME Add support for direction
+            var ret = (Direction == ParameterDirection.Out) ? "out " : "";
+            return $"{ret}{Type} {Name}";
+        }
+
+        public static Parameter From(ParameterInfo param)
+        {
+            var obj = new Parameter();
+
+            obj.Name = param.Name;
+            obj.Type = TypeRef.From(param.ParameterType);
+            obj.Direction = ParseDirection(param);
+
+            return obj;
+        }
+
+        private static ParameterDirection ParseDirection(ParameterInfo param)
+        {
+            if (param.IsOut)
+            {
+                return ParameterDirection.Out;
+            }
+
+            return ParameterDirection.In;
         }
     }
 
@@ -61,9 +83,13 @@ namespace Model
         public List<Parameter> Parameters { get; private set; }
         public bool IsFuncPtr { get; private set; }
 
-        private Function()
+        private static List<Parameter> ParseParameters(ParameterInfo[] parameters)
         {
-            Parameters = new List<Parameter>();
+            var ret = new List<Parameter>();
+
+            ret = parameters.Select(param => Parameter.From(param)).ToList();
+
+            return ret;
         }
 
         public static Function From(System.Type type)
@@ -77,6 +103,7 @@ namespace Model
 
             obj.ReturnType = TypeRef.From(methInfo.ReturnType);
 
+            obj.Parameters = ParseParameters(methInfo.GetParameters());
 
             return obj;
         }
@@ -89,6 +116,8 @@ namespace Model
             obj.IsFuncPtr = false;
 
             obj.ReturnType = TypeRef.From(ctor.DeclaringType);
+
+            obj.Parameters = ParseParameters(ctor.GetParameters());
 
             return obj;
         }
