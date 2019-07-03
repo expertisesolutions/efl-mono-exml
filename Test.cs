@@ -63,6 +63,43 @@ namespace TestSuite
 
         }
     }
+
+    public class Properties
+    {
+        public static void get_property_count(API api)
+        {
+            var cls = api.Classes.Single(x => x.Name == "Dummy.Parent");
+            Test.AssertEquals(cls.Properties.Count, 3);
+
+        }
+
+
+        public static void get_all_properties(API api)
+        {
+            var cls = api.Classes.Single(x => x.Name == "Dummy.Parent");
+
+            var getSet = cls.Properties.Single(x => x.Name == "PropGetSet");
+            Test.AssertEquals(getSet.Type.Name, "System.Int32");
+            Test.Assert(getSet.IsGet);
+            Test.Assert(getSet.IsSet);
+            Test.Assert(getSet.IsGetSet);
+            Test.AssertEquals(getSet.ToString(), "System.Int32 PropGetSet { get; set; }");
+
+            var getOnly = cls.Properties.Single(x => x.Name == "PropGetOnly");
+            Test.AssertEquals(getOnly.Type.Name, "System.String");
+            Test.Assert(getOnly.IsGet);
+            Test.Assert(!getOnly.IsSet);
+            Test.Assert(!getOnly.IsGetSet);
+            Test.AssertEquals(getOnly.ToString(), "System.String PropGetOnly { get; }");
+
+            var setOnly = cls.Properties.Single(x => x.Name == "PropSetOnly");
+            Test.AssertEquals(setOnly.Type.Name, "System.Double");
+            Test.Assert(!setOnly.IsGet);
+            Test.Assert(setOnly.IsSet);
+            Test.Assert(!setOnly.IsGetSet);
+            Test.AssertEquals(setOnly.ToString(), "System.Double PropSetOnly { set; }");
+        }
+    }
 }
 
 public class TestRunner

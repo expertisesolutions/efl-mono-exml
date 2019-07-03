@@ -33,13 +33,21 @@ namespace Dummy
 
         public event EventHandler<CustomArgs> CustomEvent;
 
-
         public Parent()
         {
         }
 
         public Parent(int x, double y)
         {
+        }
+
+        public int PropGetSet { get; set; }
+        public string PropGetOnly { get; }
+        public double PropSetOnly
+        {
+            set
+            {
+            }
         }
     }
 

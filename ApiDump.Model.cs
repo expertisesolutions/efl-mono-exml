@@ -269,6 +269,40 @@ namespace Model
     public class Property
     {
         public string Name { get; private set; }
+        public TypeRef Type { get; private set; }
+        public bool IsGet { get; private set; }
+        public bool IsSet { get; private set; }
+        public bool IsGetSet { get { return IsSet && IsGet; } }
+
+        public static Property From(PropertyInfo property)
+        {
+            var obj = new Property();
+
+            obj.Name = property.Name;
+            obj.Type = TypeRef.From(property.PropertyType);
+
+            obj.IsGet = property.GetMethod != null;
+            obj.IsSet = property.SetMethod != null;
+
+            return obj;
+        }
+
+        public override string ToString()
+        {
+            var accessors = "";
+
+            if (IsGet)
+            {
+                accessors += "get; ";
+            }
+
+            if (IsSet)
+            {
+                accessors += "set; ";
+            }
+
+            return $"{Type} {Name} {{ {accessors}}}";
+        }
     }
 
     public class Event
@@ -362,6 +396,7 @@ namespace Model
 
             foreach(var property in type.GetProperties())
             {
+                obj.Properties.Add(Property.From(property));
             }
 
             foreach (var evt in type.GetEvents())
