@@ -24,6 +24,13 @@ namespace Model
         Unkown,
     }
 
+    public enum Visibility
+    {
+        Public,
+        Protected,
+        Other,
+    }
+
     public class TypeRef
     {
         public string Name { get; private set; }
@@ -107,6 +114,7 @@ namespace Model
         public TypeRef ReturnType { get; private set; }
         public List<Parameter> Parameters { get; private set; }
         public bool IsFuncPtr { get; private set; }
+        public Visibility Visibility { get; private set; }
 
         private static List<Parameter> ParseParameters(ParameterInfo[] parameters)
         {
@@ -128,6 +136,9 @@ namespace Model
 
             obj.ReturnType = TypeRef.From(methInfo.ReturnType);
 
+            // Function pointers are toplevel API members, so always public
+            obj.Visibility = Visibility.Public;
+
             obj.Parameters = ParseParameters(methInfo.GetParameters());
 
             return obj;
@@ -141,6 +152,8 @@ namespace Model
             obj.IsFuncPtr = false;
 
             obj.ReturnType = TypeRef.From(ctor.DeclaringType);
+
+            obj.Visibility = ctor.IsFamily ? Visibility.Protected : Visibility.Public;
 
             obj.Parameters = ParseParameters(ctor.GetParameters());
 
@@ -157,6 +170,8 @@ namespace Model
             obj.IsFuncPtr = false;
 
             obj.ReturnType = TypeRef.From(method.ReturnType);
+
+            obj.Visibility = method.IsFamily ? Visibility.Protected : Visibility.Public;
 
             obj.Parameters = ParseParameters(method.GetParameters());
 
@@ -273,6 +288,7 @@ namespace Model
         public bool IsGet { get; private set; }
         public bool IsSet { get; private set; }
         public bool IsGetSet { get { return IsSet && IsGet; } }
+        //FIXME Add visibility info to properties
 
         public static Property From(PropertyInfo property)
         {
@@ -310,6 +326,7 @@ namespace Model
         public string Name { get; private set; }
         // Name of T in EventHandler<T>
         public TypeRef Type { get; private set; }
+        public Visibility Visibility {get; private set; }
 
         public static Event From(EventInfo evt)
         {
@@ -328,6 +345,10 @@ namespace Model
             {
                 obj.Type = TypeRef.From(typeof(EventArgs));
             }
+
+            // EventInfo has no visibility information itself. We need to infer from their
+            // add/remove methods
+            obj.Visibility = evt.AddMethod.IsFamily ? Visibility.Protected : Visibility.Public;
 
             return obj;
         }
@@ -380,12 +401,13 @@ namespace Model
             }
 
             // No to pass BindingFlags, already gets only the public constructors by default
-            foreach(var ctor in type.GetConstructors())
+            foreach(var ctor in type.GetConstructors(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
             {
                 obj.Constructors.Add(Function.From(ctor));
             }
 
-            foreach(var method in type.GetMethods())
+            // FIXME Do we need to list static methods too?
+            foreach(var method in type.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
             {
                 // Skip anonymous property accessors (get_Name)
                 if (!method.IsSpecialName)
@@ -399,7 +421,7 @@ namespace Model
                 obj.Properties.Add(Property.From(property));
             }
 
-            foreach (var evt in type.GetEvents())
+            foreach (var evt in type.GetEvents(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
             {
                 obj.Events.Add(Event.From(evt));
             }

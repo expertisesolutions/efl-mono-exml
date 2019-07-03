@@ -30,9 +30,11 @@ namespace TestSuite
 
             var default_ctor = ctors[0];
             Test.AssertEquals(default_ctor.Parameters.Count, 0);
+            Test.AssertEquals(default_ctor.Visibility, ApiDump.Model.Visibility.Protected);
 
             var param_ctor = ctors[1];
             Test.AssertEquals(param_ctor.Parameters.Count, 2);
+            Test.AssertEquals(param_ctor.Visibility, ApiDump.Model.Visibility.Public);
 
             var first_param = param_ctor.Parameters[0];
             Test.AssertEquals(first_param.Name, "x");
@@ -41,6 +43,21 @@ namespace TestSuite
             var second_param = param_ctor.Parameters[1];
             Test.AssertEquals(second_param.Name, "y");
             Test.AssertEquals(second_param.Type.Name, "System.Double");
+        }
+
+        public static void pub_method_visibility(API api)
+        {
+            var cls = api.Classes.Single(x => x.Name == "Dummy.Parent");
+            var pubMeth = cls.Methods.Single(x => x.Name == "PublicMeth");
+
+            Test.AssertEquals(pubMeth.Visibility, ApiDump.Model.Visibility.Public);
+        }
+
+        public static void prot_method_visibility(API api)
+        {
+            var cls = api.Classes.Single(x => x.Name == "Dummy.Parent");
+            var protMeth = cls.Methods.Single(x => x.Name == "ProtectedMeth");
+            Test.AssertEquals(protMeth.Visibility, ApiDump.Model.Visibility.Protected);
         }
     }
 
@@ -56,10 +73,12 @@ namespace TestSuite
             var clicked = evts[0];
             Test.AssertEquals(clicked.Name, "Clicked");
             Test.AssertEquals(clicked.Type.Name, "System.EventArgs");
+            Test.AssertEquals(clicked.Visibility, ApiDump.Model.Visibility.Public);
 
             var customEvt = evts[1];
             Test.AssertEquals(customEvt.Name, "CustomEvent");
             Test.AssertEquals(customEvt.Type.Name, "Dummy.CustomArgs");
+            Test.AssertEquals(customEvt.Visibility, ApiDump.Model.Visibility.Protected);
 
         }
     }

@@ -31,9 +31,9 @@ namespace Dummy
     {
         public event EventHandler Clicked;
 
-        public event EventHandler<CustomArgs> CustomEvent;
+        protected event EventHandler<CustomArgs> CustomEvent;
 
-        public Parent()
+        protected Parent()
         {
         }
 
@@ -48,6 +48,14 @@ namespace Dummy
             set
             {
             }
+        }
+
+        public void PublicMeth()
+        {
+        }
+
+        protected void ProtectedMeth()
+        {
         }
     }
 
