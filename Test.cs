@@ -18,6 +18,31 @@ namespace TestSuite
             Test.AssertEquals(ctor.Parameters.Count, 0, "Default constructor must not have paramters");
         }
     }
+
+    public class SimpleClass
+    {
+        public static void constructors(API api)
+        {
+            var cls = api.Classes.Single(x => x.Name == "Dummy.Parent");
+            Test.AssertEquals(cls.Constructors.Count, 2);
+
+            var ctors = cls.Constructors.OrderBy(ctor => ctor.Parameters.Count).ToList();
+
+            var default_ctor = ctors[0];
+            Test.AssertEquals(default_ctor.Parameters.Count, 0);
+
+            var param_ctor = ctors[1];
+            Test.AssertEquals(param_ctor.Parameters.Count, 2);
+
+            var first_param = param_ctor.Parameters[0];
+            Test.AssertEquals(first_param.Name, "x");
+            Test.AssertEquals(first_param.Type.Name, "System.Int32");
+
+            var second_param = param_ctor.Parameters[1];
+            Test.AssertEquals(second_param.Name, "y");
+            Test.AssertEquals(second_param.Type.Name, "System.Double");
+        }
+    }
 }
 
 public class TestRunner

@@ -20,13 +20,18 @@ namespace Efl
 
 namespace Dummy
 {
+    [Efl.Eo.GeneratedEntity]
     public class Parent
     {
+        public delegate void ClickedHandler(object sender, EventArgs e);
+
+        event ClickedHandler Clicked;
+
         public Parent()
         {
         }
 
-        public Parent(int x)
+        public Parent(int x, double y)
         {
         }
     }
