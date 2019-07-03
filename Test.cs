@@ -43,6 +43,26 @@ namespace TestSuite
             Test.AssertEquals(second_param.Type.Name, "System.Double");
         }
     }
+
+    public class Events
+    {
+        public static void get_all_events(API api)
+        {
+            var cls = api.Classes.Single(x => x.Name == "Dummy.Parent");
+            Test.AssertEquals(cls.Events.Count, 2);
+
+            var evts = cls.Events.OrderBy(evt => evt.Name).ToList();
+
+            var clicked = evts[0];
+            Test.AssertEquals(clicked.Name, "Clicked");
+            Test.AssertEquals(clicked.Type.Name, "System.EventArgs");
+
+            var customEvt = evts[1];
+            Test.AssertEquals(customEvt.Name, "CustomEvent");
+            Test.AssertEquals(customEvt.Type.Name, "Dummy.CustomArgs");
+
+        }
+    }
 }
 
 public class TestRunner

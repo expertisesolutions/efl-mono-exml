@@ -271,6 +271,39 @@ namespace Model
         public string Name { get; private set; }
     }
 
+    public class Event
+    {
+        public string Name { get; private set; }
+        // Name of T in EventHandler<T>
+        public TypeRef Type { get; private set; }
+
+        public static Event From(EventInfo evt)
+        {
+            var obj = new Event();
+
+            obj.Name = evt.Name;
+
+            var evtHandlerType = evt.EventHandlerType;
+
+            if (evtHandlerType != null && evtHandlerType.IsGenericType)
+            {
+                var genParam = evtHandlerType.GenericTypeArguments[0];
+                obj.Type = TypeRef.From(genParam);
+            }
+            else
+            {
+                obj.Type = TypeRef.From(typeof(EventArgs));
+            }
+
+            return obj;
+        }
+
+        public override string ToString()
+        {
+            return $"{Name}: {Type}";
+        }
+    }
+
     public class Class
     {
         public string Name { get; private set; }
@@ -279,6 +312,7 @@ namespace Model
         public TypeRef Parent { get; private set; }
         public List<TypeRef> Interfaces { get; private set; }
         public List<Property> Properties { get; private set; }
+        public List<Event> Events { get; private set; }
 
         public bool IsInterface { get; private set; }
         public bool IsAbstract { get; private set; }
@@ -288,6 +322,8 @@ namespace Model
             Constructors = new List<Function>();
             Methods = new List<Function>();
             Interfaces = new List<TypeRef>();
+            Properties = new List<Property>();
+            Events = new List<Event>();
         }
 
         public static Class From(System.Type type)
@@ -326,6 +362,11 @@ namespace Model
 
             foreach(var property in type.GetProperties())
             {
+            }
+
+            foreach (var evt in type.GetEvents())
+            {
+                obj.Events.Add(Event.From(evt));
             }
 
             return obj;

@@ -20,12 +20,19 @@ namespace Efl
 
 namespace Dummy
 {
+
+    [Efl.Eo.GeneratedEntity]
+    public class CustomArgs : EventArgs
+    {
+    }
+
     [Efl.Eo.GeneratedEntity]
     public class Parent
     {
-        public delegate void ClickedHandler(object sender, EventArgs e);
+        public event EventHandler Clicked;
 
-        event ClickedHandler Clicked;
+        public event EventHandler<CustomArgs> CustomEvent;
+
 
         public Parent()
         {
