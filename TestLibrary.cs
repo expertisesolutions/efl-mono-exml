@@ -43,12 +43,14 @@ namespace Dummy
 
         public int PropGetSet { get; set; }
         public string PropGetOnly { get; }
-        public double PropSetOnly
+        protected double PropSetOnly
         {
             set
             {
             }
         }
+
+        public int PropPrivateSet { get; private set; }
 
         public void PublicMeth()
         {

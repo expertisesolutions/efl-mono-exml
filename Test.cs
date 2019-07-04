@@ -88,35 +88,72 @@ namespace TestSuite
         public static void get_property_count(API api)
         {
             var cls = api.Classes.Single(x => x.Name == "Dummy.Parent");
-            Test.AssertEquals(cls.Properties.Count, 3);
-
+            Test.AssertEquals(cls.Properties.Count, 4);
         }
 
 
-        public static void get_all_properties(API api)
+        public static void get_set_property(API api)
         {
             var cls = api.Classes.Single(x => x.Name == "Dummy.Parent");
-
             var getSet = cls.Properties.Single(x => x.Name == "PropGetSet");
+
             Test.AssertEquals(getSet.Type.Name, "System.Int32");
-            Test.Assert(getSet.IsGet);
-            Test.Assert(getSet.IsSet);
-            Test.Assert(getSet.IsGetSet);
-            Test.AssertEquals(getSet.ToString(), "System.Int32 PropGetSet { get; set; }");
+            Test.Assert(getSet.HasGet);
+            Test.Assert(getSet.HasSet);
+            Test.Assert(getSet.HasGetSet);
+            Test.AssertEquals(getSet.ToString(), "public System.Int32 PropGetSet { get; set; }");
 
+            Test.AssertEquals(getSet.Visibility, ApiDump.Model.Visibility.Public);
+            Test.AssertEquals(getSet.GetVisibility, ApiDump.Model.Visibility.Public);
+            Test.AssertEquals(getSet.SetVisibility, ApiDump.Model.Visibility.Public);
+        }
+
+        public static void get_only_property(API api)
+        {
+            var cls = api.Classes.Single(x => x.Name == "Dummy.Parent");
             var getOnly = cls.Properties.Single(x => x.Name == "PropGetOnly");
-            Test.AssertEquals(getOnly.Type.Name, "System.String");
-            Test.Assert(getOnly.IsGet);
-            Test.Assert(!getOnly.IsSet);
-            Test.Assert(!getOnly.IsGetSet);
-            Test.AssertEquals(getOnly.ToString(), "System.String PropGetOnly { get; }");
 
+            Test.AssertEquals(getOnly.Type.Name, "System.String");
+            Test.Assert(getOnly.HasGet);
+            Test.Assert(!getOnly.HasSet);
+            Test.Assert(!getOnly.HasGetSet);
+            Test.AssertEquals(getOnly.ToString(), "public System.String PropGetOnly { get; }");
+
+            Test.AssertEquals(getOnly.Visibility, ApiDump.Model.Visibility.Public);
+            Test.AssertEquals(getOnly.GetVisibility, ApiDump.Model.Visibility.Public);
+            Test.AssertEquals(getOnly.SetVisibility, ApiDump.Model.Visibility.Other);
+        }
+
+        public static void set_only_property(API api)
+        {
+            var cls = api.Classes.Single(x => x.Name == "Dummy.Parent");
             var setOnly = cls.Properties.Single(x => x.Name == "PropSetOnly");
+
             Test.AssertEquals(setOnly.Type.Name, "System.Double");
-            Test.Assert(!setOnly.IsGet);
-            Test.Assert(setOnly.IsSet);
-            Test.Assert(!setOnly.IsGetSet);
-            Test.AssertEquals(setOnly.ToString(), "System.Double PropSetOnly { set; }");
+            Test.Assert(!setOnly.HasGet);
+            Test.Assert(setOnly.HasSet);
+            Test.Assert(!setOnly.HasGetSet);
+            Test.AssertEquals(setOnly.ToString(), "protected System.Double PropSetOnly { set; }");
+
+            Test.AssertEquals(setOnly.Visibility, ApiDump.Model.Visibility.Protected);
+            Test.AssertEquals(setOnly.GetVisibility, ApiDump.Model.Visibility.Other);
+            Test.AssertEquals(setOnly.SetVisibility, ApiDump.Model.Visibility.Protected);
+        }
+
+        public static void get_private_set_property(API api)
+        {
+            var cls = api.Classes.Single(x => x.Name == "Dummy.Parent");
+            var privateSet = cls.Properties.Single(x => x.Name == "PropPrivateSet");
+
+            Test.AssertEquals(privateSet.Type.Name, "System.Int32");
+            Test.Assert(privateSet.HasGet);
+            Test.Assert(!privateSet.HasSet);
+            Test.Assert(!privateSet.HasGetSet);
+            Test.AssertEquals(privateSet.ToString(), "public System.Int32 PropPrivateSet { get; }");
+
+            Test.AssertEquals(privateSet.Visibility, ApiDump.Model.Visibility.Public);
+            Test.AssertEquals(privateSet.GetVisibility, ApiDump.Model.Visibility.Public);
+            Test.AssertEquals(privateSet.SetVisibility, ApiDump.Model.Visibility.Other);
         }
     }
 }

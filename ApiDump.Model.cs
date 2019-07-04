@@ -208,6 +208,27 @@ namespace Model
 
             return sb.ToString();
         }
+
+        internal static Visibility ParseMethodVisibility(MethodInfo meth)
+        {
+            if (meth == null)
+            {
+                return Visibility.Other;
+            }
+
+            if (meth.IsPublic)
+            {
+                return Visibility.Public;
+            }
+            else if (meth.IsFamily)
+            {
+                return Visibility.Protected;
+            }
+            else
+            {
+                return Visibility.Other;
+            }
+        }
     }
 
     public class Enum
@@ -285,10 +306,30 @@ namespace Model
     {
         public string Name { get; private set; }
         public TypeRef Type { get; private set; }
-        public bool IsGet { get; private set; }
-        public bool IsSet { get; private set; }
-        public bool IsGetSet { get { return IsSet && IsGet; } }
-        //FIXME Add visibility info to properties
+        public bool HasGet { get; private set; }
+        public bool HasSet { get; private set; }
+        public bool HasGetSet { get { return HasSet && HasGet; } }
+        public Visibility GetVisibility { get; private set; }
+        public Visibility SetVisibility { get; private set; }
+        // The property own visibility is the least restrictive visibility of their accessors
+        public Visibility Visibility
+        {
+            get
+            {
+                if (GetVisibility == Visibility.Public || SetVisibility == Visibility.Public)
+                {
+                    return Visibility.Public;
+                }
+                else if (GetVisibility == Visibility.Protected || SetVisibility == Visibility.Protected)
+                {
+                    return Visibility.Protected;
+                }
+                else
+                {
+                    return Visibility.Other;
+                }
+            }
+        }
 
         public static Property From(PropertyInfo property)
         {
@@ -297,8 +338,12 @@ namespace Model
             obj.Name = property.Name;
             obj.Type = TypeRef.From(property.PropertyType);
 
-            obj.IsGet = property.GetMethod != null;
-            obj.IsSet = property.SetMethod != null;
+
+            obj.GetVisibility = Function.ParseMethodVisibility(property.GetMethod);
+            obj.SetVisibility = Function.ParseMethodVisibility(property.SetMethod);
+
+            obj.HasGet = property.CanRead && (obj.GetVisibility != Visibility.Other);
+            obj.HasSet = property.CanWrite && (obj.SetVisibility != Visibility.Other);
 
             return obj;
         }
@@ -307,17 +352,17 @@ namespace Model
         {
             var accessors = "";
 
-            if (IsGet)
+            if (HasGet)
             {
                 accessors += "get; ";
             }
 
-            if (IsSet)
+            if (HasSet)
             {
                 accessors += "set; ";
             }
 
-            return $"{Type} {Name} {{ {accessors}}}";
+            return $"{Visibility.ToString().ToLower()} {Type} {Name} {{ {accessors}}}";
         }
     }
 
@@ -416,7 +461,7 @@ namespace Model
                 }
             }
 
-            foreach(var property in type.GetProperties())
+            foreach(var property in type.GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
             {
                 obj.Properties.Add(Property.From(property));
             }
