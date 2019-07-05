@@ -31,6 +31,7 @@ namespace Model
         Other,
     }
 
+    [Serializable]
     public class TypeRef
     {
         public string Name { get; private set; }
@@ -57,6 +58,7 @@ namespace Model
         }
     }
 
+    [Serializable]
     public class Parameter
     {
         public string Name { get; private set; }
@@ -108,6 +110,7 @@ namespace Model
         }
     }
 
+    [Serializable]
     public class Function
     {
         public string Name { get; private set; }
@@ -231,6 +234,7 @@ namespace Model
         }
     }
 
+    [Serializable]
     public class Enum
     {
         public string Name { get; private set; }
@@ -260,6 +264,7 @@ namespace Model
         }
     }
 
+    [Serializable]
     public class StructField
     {
         public string Name { get; private set; }
@@ -275,6 +280,7 @@ namespace Model
         }
     }
 
+    [Serializable]
     public class Struct
     {
         public string Name { get; private set; }
@@ -302,6 +308,7 @@ namespace Model
         }
     }
 
+    [Serializable]
     public class Property
     {
         public string Name { get; private set; }
@@ -366,6 +373,7 @@ namespace Model
         }
     }
 
+    [Serializable]
     public class Event
     {
         public string Name { get; private set; }
@@ -404,6 +412,7 @@ namespace Model
         }
     }
 
+    [Serializable]
     public class Class
     {
         public string Name { get; private set; }

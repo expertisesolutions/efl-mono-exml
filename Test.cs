@@ -1,6 +1,7 @@
 using System;
 using System.Reflection;
 using System.Linq;
+using System.Collections.Generic;
 
 using ApiDump;
 
@@ -154,6 +155,37 @@ namespace TestSuite
             Test.AssertEquals(privateSet.Visibility, ApiDump.Model.Visibility.Public);
             Test.AssertEquals(privateSet.GetVisibility, ApiDump.Model.Visibility.Public);
             Test.AssertEquals(privateSet.SetVisibility, ApiDump.Model.Visibility.Other);
+        }
+    }
+
+    public class Serialization
+    {
+        public static void test_serialization(API api)
+        {
+            var memory = new System.IO.MemoryStream();
+
+            api.Serialize(memory);
+
+            memory.Position = 0;
+
+            var copy = API.Deserialize(memory);
+
+            Func<API, List<string> > GetNames = (API data) => {
+                List<string> acc = new List<string>();
+
+                acc.AddRange(data.Classes.Select(x => x.Name).OrderBy(x => x).ToList());
+                acc.AddRange(data.FunctionPointers.Select(x => x.Name).OrderBy(x => x).ToList());
+                acc.AddRange(data.Enums.Select(x => x.Name).OrderBy(x => x).ToList());
+                acc.AddRange(data.Structs.Select(x => x.Name).OrderBy(x => x).ToList());
+
+                return acc;
+            };
+
+            var originalNames = GetNames(api);
+            var newNames = GetNames(copy);
+
+            Test.AssertEquals(originalNames.Count, newNames.Count);
+            Test.Assert(originalNames.SequenceEqual(newNames));
         }
     }
 }

@@ -1,10 +1,13 @@
 ﻿using System;
 using System.Reflection;
 using System.Collections.Generic;
+using System.Runtime.Serialization;
+using System.Runtime.Serialization.Formatters.Binary;
 
 namespace ApiDump
 {
 
+    [Serializable]
     public class API
     {
         public List<Model.Class> Classes { get; private set; }
@@ -101,6 +104,18 @@ namespace ApiDump
             }
 
             return ret;
+        }
+
+        public void Serialize(System.IO.Stream stream)
+        {
+            BinaryFormatter formatter = new BinaryFormatter();
+            formatter.Serialize(stream, this);
+        }
+
+        public static API Deserialize(System.IO.Stream stream)
+        {
+            BinaryFormatter formatter = new BinaryFormatter();
+            return (API)formatter.Deserialize(stream);
         }
     }
 }
