@@ -1,9 +1,13 @@
-test_lib = library('testlib', ['TestLibrary.cs'])
+sample_lib = library('samplelib', ['TestLibrary.cs'])
 
-testsuite = executable('testsuite', ['Test.cs', 'TestUtils.cs'], link_with: apidump_lib)
+test_lib = library('testlib', ['TestUtils.cs'])
+
+apidump_suite = executable('apidump_test_suite',
+                           ['ApiDump.Test.cs'],
+                           link_with: [apidump_lib, test_lib])
 
 testenv = environment()
 
 testenv.prepend('MONO_PATH', mono_path)
 
-test('api test', testsuite, args: [test_lib.full_path()], env: testenv)
+test('api test', apidump_suite, args: [sample_lib.full_path()], env: testenv)
