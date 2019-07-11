@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+        <xs:element name="exml" type="exmlType" />
+
+        <xs:complexType name="exmlType">
+                <xs:sequence>
+                        <xs:element name="Box" type="BoxType" />
+                </xs:sequence>
+        </xs:complexType>
+
+        <!-- Container types !-->
+        <xs:complexType name="BoxType">
+                <xs:sequence>
+                        <xs:element name="Button" />
+                        <xs:element name="Button" />
+                </xs:sequence>
+        </xs:complexType>
+
+        <!-- Non-container widgets !-->
+        <xs:simpleType name="ButtonType">
+                <xs:restriction base="xs:string" />
+        </xs:simpleType>
+        <xs:simpleType name="RadioType">
+                <xs:restriction base="xs:string" />
+        </xs:simpleType>
+</xs:schema>
