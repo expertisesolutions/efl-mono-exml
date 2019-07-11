@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<exml xmlns:efl="http://www.enlightenment.org/EXML">
+<Box efl:orientation="Vertical">
+        <Box efl:orientation="Horizontal">
+                <Button efl:text="Ok" />
+                <Button efl:text="Cancel" />
+        </Box>
+</Box>
+</exml>
