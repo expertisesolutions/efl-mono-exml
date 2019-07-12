@@ -18,9 +18,12 @@ public class ExmlValidator
         XmlSchemaSet schema = new XmlSchemaSet();
         schema.Add(null, schemaReader);
 
-        XmlReader xmlReader = XmlReader.Create(xml);
+        XmlReaderSettings settings = new XmlReaderSettings();
+        settings.Schemas = schema;
+        settings.ValidationType = ValidationType.Schema;
+        settings.ValidationEventHandler += handler;
+        XmlReader xmlReader = XmlReader.Create(xml, settings);
         XDocument doc = XDocument.Load(xmlReader);
-        doc.Validate(schema, handler);
     }
 }
 
