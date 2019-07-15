@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 
 public class Dumper
 {
@@ -12,6 +13,13 @@ public class Dumper
         ApiDump.Logging.Logger.AddConsoleLogger();
 
         var api = ApiDump.API.Parse(args[0]);
+
+        var filename = Path.GetFileName(args[0]);
+        filename += ".api";
+        using (var writer = File.Create(filename))
+        {
+            api.Serialize(writer);
+        }
 
         Dump("api.yaml", api);
     }
