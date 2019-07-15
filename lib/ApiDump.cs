@@ -28,13 +28,13 @@ namespace ApiDump
 
         }
 
-        private static bool IsGeneratedEntity(Type type)
+        private static bool IsBindingEntity(Type type)
         {
             var attributes = System.Attribute.GetCustomAttributes(type, false);
 
             foreach (var attribute in attributes)
             {
-                if (attribute.GetType().ToString() == "Efl.Eo.GeneratedEntity")
+                if (attribute.GetType().ToString() == "Efl.Eo.BindingEntity")
                 {
                     return true;
                 }
@@ -79,7 +79,7 @@ namespace ApiDump
 
             foreach (var exportedType in assembly.GetExportedTypes())
             {
-                if (!IsGeneratedEntity(exportedType))
+                if (!IsBindingEntity(exportedType))
                 {
                     continue;
                 }

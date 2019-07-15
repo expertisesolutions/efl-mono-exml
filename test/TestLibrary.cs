@@ -12,7 +12,7 @@ namespace Efl
                                AllowMultiple = false,
                                Inherited = false)
         ]
-        public class GeneratedEntity: System.Attribute
+        public class BindingEntity: System.Attribute
         {
         }
     }
@@ -21,17 +21,19 @@ namespace Efl
 namespace Dummy
 {
 
-    [Efl.Eo.GeneratedEntity]
+    [Efl.Eo.BindingEntity]
     public class CustomArgs : EventArgs
     {
     }
 
-    [Efl.Eo.GeneratedEntity]
+    [Efl.Eo.BindingEntity]
     public class Parent
     {
+#pragma warning disable 0067
         public event EventHandler Clicked;
 
         protected event EventHandler<CustomArgs> CustomEvent;
+#pragma warning restore 0067
 
         protected Parent()
         {
@@ -61,7 +63,7 @@ namespace Dummy
         }
     }
 
-    [Efl.Eo.GeneratedEntity]
+    [Efl.Eo.BindingEntity]
     public class EmptyClass
     {
     }
