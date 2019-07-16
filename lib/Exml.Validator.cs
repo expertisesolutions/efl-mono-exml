@@ -56,19 +56,44 @@ internal class Widget
     }
 }
 
+public enum ValidationIssueSeverity
+{
+    Warning,
+    Error,
+    CriticalError,
+}
+
+/// <summary>Class to report issues when validating the XML.</summary>
+public class ValidationIssue
+{
+    public int Line { get; private set; }
+    public string Message { get; private set; }
+    public string Details { get; private set; }
+    public ValidationIssueSeverity Severity { get; private set; }
+
+    public ValidationIssue(int line, string message, string details, ValidationIssueSeverity severity)
+    {
+        Line = line;
+        Message = message;
+        Details = details;
+        Severity = severity;
+    }
+}
+
 public static class ExmlValidator
 {
-    public static void Validate(string path)
+    public static List<ValidationIssue> Validate(string path)
     {
         using (var file = File.OpenRead(path))
         {
-            Validate(file);
+            return Validate(file);
         }
     }
 
-    public static void Validate(Stream stream)
+    public static List<ValidationIssue> Validate(Stream stream)
     {
         // FIXME Maybe we should parametrize the settings
+        var issues = new List<ValidationIssue>();
         var settings = new XmlReaderSettings();
         settings.ConformanceLevel = ConformanceLevel.Document;
 
@@ -78,63 +103,74 @@ public static class ExmlValidator
             Widget root = null;
             Widget current = null;
 
-            while (reader.Read())
+            try
             {
-
-                switch (reader.NodeType)
+                while (reader.Read())
                 {
-                    case XmlNodeType.Element:
-                        Logger.Info($"Got element {reader.Name}");
-                        var parent = current;
 
-                        current = new Widget();
-                        current.Parent = parent;
-                        current.Name = reader.Name;
-                        // Do we need to remember before advancing to the attributes?
-                        bool isEmptyElement = reader.IsEmptyElement;
+                    switch (reader.NodeType)
+                    {
+                        case XmlNodeType.Element:
+                            Logger.Info($"Got element {reader.Name}");
+                            var parent = current;
 
-                        if (reader.HasAttributes)
-                        {
-                            while (reader.MoveToNextAttribute())
+                            current = new Widget();
+                            current.Parent = parent;
+                            current.Name = reader.Name;
+                            // Do we need to remember before advancing to the attributes?
+                            bool isEmptyElement = reader.IsEmptyElement;
+
+                            if (reader.HasAttributes)
                             {
-                                Logger.Info($"Adding attribute {reader.Name} valued {reader.Value}");
-                                current.Attributes[reader.Name] = reader.Value;
+                                while (reader.MoveToNextAttribute())
+                                {
+                                    Logger.Info($"Adding attribute {reader.Name} valued {reader.Value}");
+                                    current.Attributes[reader.Name] = reader.Value;
+                                }
                             }
-                        }
 
-                        if (parent != null)
-                        {
-                            parent.Children.Add(current);
-                        }
+                            if (parent != null)
+                            {
+                                parent.Children.Add(current);
+                            }
 
-                        if (root == null)
-                        {
-                            root = current;
-                        }
+                            if (root == null)
+                            {
+                                root = current;
+                            }
 
-                        if (!reader.IsEmptyElement)
-                        {
-                            Logger.Info($"Pushing element {current.Name}");
-                            stack.Push(current);
-                        }
-                        else
-                        {
-                            Logger.Info($"Element {reader.Name} has no children. Not pushing...");
-                            current = parent;
-                        }
+                            if (!reader.IsEmptyElement)
+                            {
+                                Logger.Info($"Pushing element {current.Name}");
+                                stack.Push(current);
+                            }
+                            else
+                            {
+                                Logger.Info($"Element {reader.Name} has no children. Not pushing...");
+                                current = parent;
+                            }
 
-                        break;
-                    case XmlNodeType.EndElement:
-                        current = stack.Pop();
-                        Logger.Info($"Popped element {current.Name}");
-                        break;
-                    default:
-                        Logger.Info($"Node {reader.NodeType} with value {reader.Value}");
-                        break;
+                            break;
+                        case XmlNodeType.EndElement:
+                            current = stack.Pop();
+                            Logger.Info($"Popped element {current.Name}");
+                            break;
+                        default:
+                            Logger.Info($"Node {reader.NodeType} with value {reader.Value}");
+                            break;
+                    }
                 }
+            }
+            catch (XmlException ex)
+            {
+                // FIXME infer line from exception
+                issues.Add(new ValidationIssue(0, "Failed to read XML file.", ex.Message,
+                           ValidationIssueSeverity.CriticalError));
             }
 
             Logger.Info($"Got tree: {root}");
+
+            return issues;
         }
     }
 }

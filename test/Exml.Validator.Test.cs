@@ -14,12 +14,19 @@ namespace TestSuite
     {
         public static void valid(string test_folder)
         {
-            ExmlValidator.Validate(Path.Combine(test_folder, "hello_valid.xml"));
+            var issues = ExmlValidator.Validate(Path.Combine(test_folder, "hello_valid.xml"));
+            Test.AssertEquals(issues.Count, 0);
         }
 
         public static void invalid(string test_folder)
         {
-            Test.AssertRaises<XmlException>(() => ExmlValidator.Validate(Path.Combine(test_folder, "invalid_xml.xml")));
+            var issues = ExmlValidator.Validate(Path.Combine(test_folder, "invalid_xml.xml"));
+
+            Test.AssertEquals(issues.Count, 1);
+
+            var issue = issues[0];
+
+            Test.AssertEquals(issue.Severity, ValidationIssueSeverity.CriticalError);
         }
 
     }
