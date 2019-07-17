@@ -32,6 +32,17 @@ namespace TestSuite
             Test.AssertEquals(issue.Position, 3);
         }
 
+        public static void unkown_tag(string test_folder)
+        {
+            var issues = ExmlValidator.Validate(Path.Combine(test_folder, "unknown_widget.xml"));
+
+            Test.AssertEquals(issues.Count, 1);
+            var issue = issues[0];
+            Test.AssertEquals(issue.Severity, ValidationIssueSeverity.Error);
+            Test.AssertEquals(issue.Line, 4);
+            Test.AssertEquals(issue.Position, 10);
+            Test.AssertEquals(issue.Message, "Unknown type MyUnknownButton");
+        }
     }
 }
 
