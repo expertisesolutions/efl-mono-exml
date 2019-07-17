@@ -4,13 +4,12 @@ using System.Linq;
 using System.Collections.Generic;
 
 using ApiModel = Exml.ApiModel;
-using Exml.ApiDump;
 
 namespace TestSuite
 {
     public class EmptyClass
     {
-        public static void empty_class(API api)
+        public static void empty_class(ApiModel.API api)
         {
             var cls = api.Classes.Single(x => x.Name == "Dummy.EmptyClass");
 
@@ -22,7 +21,7 @@ namespace TestSuite
 
     public class SimpleClass
     {
-        public static void constructors(API api)
+        public static void constructors(ApiModel.API api)
         {
             var cls = api.Classes.Single(x => x.Name == "Dummy.Parent");
             Test.AssertEquals(cls.Constructors.Count, 2);
@@ -46,7 +45,7 @@ namespace TestSuite
             Test.AssertEquals(second_param.Type.Name, "System.Double");
         }
 
-        public static void pub_method_visibility(API api)
+        public static void pub_method_visibility(ApiModel.API api)
         {
             var cls = api.Classes.Single(x => x.Name == "Dummy.Parent");
             var pubMeth = cls.Methods.Single(x => x.Name == "PublicMeth");
@@ -54,7 +53,7 @@ namespace TestSuite
             Test.AssertEquals(pubMeth.Visibility, ApiModel.Visibility.Public);
         }
 
-        public static void prot_method_visibility(API api)
+        public static void prot_method_visibility(ApiModel.API api)
         {
             var cls = api.Classes.Single(x => x.Name == "Dummy.Parent");
             var protMeth = cls.Methods.Single(x => x.Name == "ProtectedMeth");
@@ -64,7 +63,7 @@ namespace TestSuite
 
     public class Events
     {
-        public static void get_all_events(API api)
+        public static void get_all_events(ApiModel.API api)
         {
             var cls = api.Classes.Single(x => x.Name == "Dummy.Parent");
             Test.AssertEquals(cls.Events.Count, 2);
@@ -86,14 +85,14 @@ namespace TestSuite
 
     public class Properties
     {
-        public static void get_property_count(API api)
+        public static void get_property_count(ApiModel.API api)
         {
             var cls = api.Classes.Single(x => x.Name == "Dummy.Parent");
             Test.AssertEquals(cls.Properties.Count, 4);
         }
 
 
-        public static void get_set_property(API api)
+        public static void get_set_property(ApiModel.API api)
         {
             var cls = api.Classes.Single(x => x.Name == "Dummy.Parent");
             var getSet = cls.Properties.Single(x => x.Name == "PropGetSet");
@@ -109,7 +108,7 @@ namespace TestSuite
             Test.AssertEquals(getSet.SetVisibility, ApiModel.Visibility.Public);
         }
 
-        public static void get_only_property(API api)
+        public static void get_only_property(ApiModel.API api)
         {
             var cls = api.Classes.Single(x => x.Name == "Dummy.Parent");
             var getOnly = cls.Properties.Single(x => x.Name == "PropGetOnly");
@@ -125,7 +124,7 @@ namespace TestSuite
             Test.AssertEquals(getOnly.SetVisibility, ApiModel.Visibility.Other);
         }
 
-        public static void set_only_property(API api)
+        public static void set_only_property(ApiModel.API api)
         {
             var cls = api.Classes.Single(x => x.Name == "Dummy.Parent");
             var setOnly = cls.Properties.Single(x => x.Name == "PropSetOnly");
@@ -141,7 +140,7 @@ namespace TestSuite
             Test.AssertEquals(setOnly.SetVisibility, ApiModel.Visibility.Protected);
         }
 
-        public static void get_private_set_property(API api)
+        public static void get_private_set_property(ApiModel.API api)
         {
             var cls = api.Classes.Single(x => x.Name == "Dummy.Parent");
             var privateSet = cls.Properties.Single(x => x.Name == "PropPrivateSet");
@@ -160,7 +159,7 @@ namespace TestSuite
 
     public class Serialization
     {
-        public static void test_serialization(API api)
+        public static void test_serialization(ApiModel.API api)
         {
             var memory = new System.IO.MemoryStream();
 
@@ -168,9 +167,9 @@ namespace TestSuite
 
             memory.Position = 0;
 
-            var copy = API.Deserialize(memory);
+            var copy = ApiModel.API.Deserialize(memory);
 
-            Func<API, List<string> > GetNames = (API data) => {
+            Func<ApiModel.API, List<string> > GetNames = (ApiModel.API data) => {
                 List<string> acc = new List<string>();
 
                 acc.AddRange(data.Classes.Select(x => x.Name).OrderBy(x => x).ToList());
@@ -196,7 +195,7 @@ public class TestRunner
     {
         // FIXME control verbosity with `meson test -v`
         /* ApiDump.Logging.Logger.AddConsoleLogger(); */
-        var api = API.Parse(args[0]);
+        var api = ApiModel.API.Parse(args[0]);
         bool failed = false;
 
         var tcases = from t in Assembly.GetExecutingAssembly().GetTypes()

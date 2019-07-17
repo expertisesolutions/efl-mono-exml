@@ -1,5 +1,4 @@
 exml_lib = library('exml', [
-    'Exml.ApiDump.cs',
     'Exml.ApiModel.cs',
     'Exml.Logging.cs',
     'Exml.XmlModel.cs',
