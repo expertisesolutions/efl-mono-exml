@@ -4,23 +4,26 @@ using System.Collections.Generic;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
 
+namespace Exml
+{
+
 namespace ApiDump
 {
 
     [Serializable]
     public class API
     {
-        public List<Model.Class> Classes { get; private set; }
-        public List<Model.Function> FunctionPointers { get; private set; }
-        public List<Model.Enum> Enums { get; private set; }
-        public List<Model.Struct> Structs { get; private set; }
+        public List<ApiModel.Class> Classes { get; private set; }
+        public List<ApiModel.Function> FunctionPointers { get; private set; }
+        public List<ApiModel.Enum> Enums { get; private set; }
+        public List<ApiModel.Struct> Structs { get; private set; }
 
         private API()
         {
-            Classes = new List<Model.Class>();
-            FunctionPointers = new List<Model.Function>();
-            Enums = new List<Model.Enum>();
-            Structs = new List<Model.Struct>();
+            Classes = new List<ApiModel.Class>();
+            FunctionPointers = new List<ApiModel.Function>();
+            Enums = new List<ApiModel.Enum>();
+            Structs = new List<ApiModel.Struct>();
         }
 
         public void AddEntity(Type entity)
@@ -87,16 +90,16 @@ namespace ApiDump
                 switch (GetEntityKind(exportedType))
                 {
                     case EntityKind.Class:
-                        ret.Classes.Add(Model.Class.From(exportedType));
+                        ret.Classes.Add(ApiModel.Class.From(exportedType));
                         break;
                     case EntityKind.Enum:
-                        ret.Enums.Add(Model.Enum.From(exportedType));
+                        ret.Enums.Add(ApiModel.Enum.From(exportedType));
                         break;
                     case EntityKind.Function:
-                        ret.FunctionPointers.Add(Model.Function.From(exportedType));
+                        ret.FunctionPointers.Add(ApiModel.Function.From(exportedType));
                         break;
                     case EntityKind.Struct:
-                        ret.Structs.Add(Model.Struct.From(exportedType));
+                        ret.Structs.Add(ApiModel.Struct.From(exportedType));
                         break;
                     default:
                         throw new ArgumentException($"Failed to get entity Type of type {exportedType.FullName}");
@@ -118,4 +121,6 @@ namespace ApiDump
             return (API)formatter.Deserialize(stream);
         }
     }
+}
+
 }

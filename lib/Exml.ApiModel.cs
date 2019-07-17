@@ -4,11 +4,12 @@ using System.Linq;
 using System.Reflection;
 using System.Collections.Generic;
 
-using ApiDump.Logging;
+using Exml.Logging;
 
-namespace ApiDump
+namespace Exml
 {
-namespace Model
+
+namespace ApiModel
 {
     using ClassName = String;
     using EnumField = String;

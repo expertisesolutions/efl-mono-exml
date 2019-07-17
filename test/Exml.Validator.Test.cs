@@ -7,6 +7,7 @@ using System.Xml;
 using System.Xml.Schema;
 
 using Exml.Validator;
+using Exml.ValidatorModel;
 
 namespace TestSuite
 {
@@ -27,6 +28,8 @@ namespace TestSuite
             var issue = issues[0];
 
             Test.AssertEquals(issue.Severity, ValidationIssueSeverity.CriticalError);
+            Test.AssertEquals(issue.Line, 9);
+            Test.AssertEquals(issue.Position, 3);
         }
 
     }
@@ -37,7 +40,7 @@ public class TestRunner
     static void Main(string[] args)
     {
         // FIXME control verbosity with `meson test -v`
-        ApiDump.Logging.Logger.AddConsoleLogger();
+        Exml.Logging.Logger.AddConsoleLogger();
         string test_folder = args[0];
         bool failed = false;
 

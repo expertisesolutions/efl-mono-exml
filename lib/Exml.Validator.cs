@@ -6,83 +6,17 @@ using System.Text;
 using System.Xml.Schema;
 using System.Collections.Generic;
 
-using ApiDump.Logging;
+using Exml.Logging;
 
 namespace Exml
 {
+
 namespace Validator
 {
 
-// Internal representation of the EXML while we read it
-internal class Widget
-{
-    public string Name { get; set; }
-    public Dictionary<string, string> Attributes { get; set; }
-    public List<Widget> Children { get; set; }
-    public Widget Parent { get; set; }
-
-    public Widget()
-    {
-        Attributes = new Dictionary<string, string>();
-        Children = new List<Widget>();
-    }
-
-    public override String ToString()
-    {
-        return ToString(0);
-    }
-
-    public string ToString(int indent)
-    {
-        var spaces = new String(' ', 4 * indent);
-        var sb = new StringBuilder();
-
-        sb.AppendLine(spaces + $"Widget: {Name}");
-
-        foreach (var entry in Attributes)
-        {
-            sb.AppendLine(spaces + $"    attrib: {entry.Key} => {entry.Value}");
-        }
-
-        if (Children.Count > 0)
-        {
-            foreach (var child in Children)
-            {
-                sb.AppendLine(spaces + child.ToString(indent + 1));
-            }
-        }
-
-        return sb.ToString();
-    }
-}
-
-public enum ValidationIssueSeverity
-{
-    Warning,
-    Error,
-    CriticalError,
-}
-
-/// <summary>Class to report issues when validating the XML.</summary>
-public class ValidationIssue
-{
-    public int Line { get; private set; }
-    public string Message { get; private set; }
-    public string Details { get; private set; }
-    public ValidationIssueSeverity Severity { get; private set; }
-
-    public ValidationIssue(int line, string message, string details, ValidationIssueSeverity severity)
-    {
-        Line = line;
-        Message = message;
-        Details = details;
-        Severity = severity;
-    }
-}
-
 public static class ExmlValidator
 {
-    public static List<ValidationIssue> Validate(string path)
+    public static List<ValidatorModel.ValidationIssue> Validate(string path)
     {
         using (var file = File.OpenRead(path))
         {
@@ -90,18 +24,18 @@ public static class ExmlValidator
         }
     }
 
-    public static List<ValidationIssue> Validate(Stream stream)
+    public static List<ValidatorModel.ValidationIssue> Validate(Stream stream)
     {
         // FIXME Maybe we should parametrize the settings
-        var issues = new List<ValidationIssue>();
+        var issues = new List<ValidatorModel.ValidationIssue>();
         var settings = new XmlReaderSettings();
         settings.ConformanceLevel = ConformanceLevel.Document;
 
         using (var reader = XmlReader.Create(stream, settings))
         {
-            Stack<Widget> stack = new Stack<Widget>();
-            Widget root = null;
-            Widget current = null;
+            Stack<XmlModel.Widget> stack = new Stack<XmlModel.Widget>();
+            XmlModel.Widget root = null;
+            XmlModel.Widget current = null;
 
             try
             {
@@ -114,24 +48,30 @@ public static class ExmlValidator
                             Logger.Info($"Got element {reader.Name}");
                             var parent = current;
 
-                            current = new Widget();
-                            current.Parent = parent;
-                            current.Name = reader.Name;
-                            // Do we need to remember before advancing to the attributes?
-                            bool isEmptyElement = reader.IsEmptyElement;
+                            try
+                            {
+                                current = new XmlModel.Widget(reader.Name, parent);
+                            }
+                            catch (ValidatorModel.ValidationException ex)
+                            {
+                                issues.AddRange(ex.Issues);
+                                reader.Skip();
+                            }
 
                             if (reader.HasAttributes)
                             {
                                 while (reader.MoveToNextAttribute())
                                 {
                                     Logger.Info($"Adding attribute {reader.Name} valued {reader.Value}");
-                                    current.Attributes[reader.Name] = reader.Value;
+                                    var attributeIssues = current.AddAttribute(reader.Name, reader.Value);
+                                    issues.AddRange(attributeIssues);
                                 }
                             }
 
                             if (parent != null)
                             {
-                                parent.Children.Add(current);
+                                var parentIssues = parent.AddChild(current);
+                                issues.AddRange(parentIssues);
                             }
 
                             if (root == null)
@@ -163,9 +103,8 @@ public static class ExmlValidator
             }
             catch (XmlException ex)
             {
-                // FIXME infer line from exception
-                issues.Add(new ValidationIssue(0, "Failed to read XML file.", ex.Message,
-                           ValidationIssueSeverity.CriticalError));
+                issues.Add(new ValidatorModel.ValidationIssue("Failed to read XML file.", ex.Message,
+                           ValidatorModel.ValidationIssueSeverity.CriticalError, reader as IXmlLineInfo));
             }
 
             Logger.Info($"Got tree: {root}");

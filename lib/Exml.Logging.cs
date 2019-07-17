@@ -1,6 +1,6 @@
 using System;
 
-namespace ApiDump
+namespace Exml
 {
 namespace Logging
 {

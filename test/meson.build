@@ -4,11 +4,11 @@ test_lib = library('testlib', ['TestUtils.cs'])
 
 apidump_suite = executable('apidump_test_suite',
                            ['ApiDump.Test.cs'],
-                           link_with: [apidump_lib, test_lib])
+                           link_with: [exml_lib, test_lib])
 
 validator_suite = executable('validator_test_suite',
                              ['Exml.Validator.Test.cs'],
-                             link_with: [validator_lib, test_lib, apidump_lib])
+                             link_with: [exml_lib, test_lib])
 
 testenv = environment()
 
