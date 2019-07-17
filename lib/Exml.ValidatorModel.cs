@@ -48,6 +48,11 @@ public class ValidationIssue
             Logger.Info($"Added line info at line {Line} and position {Position}");
         }
     }
+
+    public override String ToString()
+    {
+        return $"[line:{Line}, pos[{Position}]: {Severity} - {Message}";
+    }
 }
 
 public class ValidationException : Exception
