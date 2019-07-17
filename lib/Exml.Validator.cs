@@ -46,6 +46,12 @@ public static class ExmlValidator
                     {
                         case XmlNodeType.Element:
                             Logger.Info($"Got element {reader.Name}");
+
+                            // FIXME: Guarantee there is no more than one root inside exml
+                            if (reader.Name == "exml")
+                            {
+                                continue; // Skip the outer tag
+                            }
                             var parent = current;
 
                             try
@@ -92,6 +98,10 @@ public static class ExmlValidator
 
                             break;
                         case XmlNodeType.EndElement:
+                            if (reader.Name == "exml")
+                            {
+                                continue; // Skip outer tag
+                            }
                             current = stack.Pop();
                             Logger.Info($"Popped element {current.Name}");
                             break;
