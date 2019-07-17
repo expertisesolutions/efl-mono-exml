@@ -3,6 +3,7 @@ using System.Text;
 using System.Collections.Generic;
 
 using Exml.Logging;
+using ApiModel = Exml.ApiModel;
 
 namespace Exml
 {
@@ -13,10 +14,16 @@ namespace XmlModel
 // Object model for EXML interfaces
 public class Widget
 {
+
+    private static ApiModel.API s_api;
+
     public string Name { get; set; }
     public Dictionary<string, string> Attributes { get; set; }
     public List<Widget> Children { get; set; }
     public Widget Parent { get; set; }
+
+    private bool _is_container;
+    private ApiModel.Class _class;
 
     public Widget(string name, Widget parent)
     {
@@ -69,6 +76,11 @@ public class Widget
         }
 
         return sb.ToString();
+    }
+
+    public static void SetApi(ApiModel.API api)
+    {
+        s_api = api;
     }
 }
 

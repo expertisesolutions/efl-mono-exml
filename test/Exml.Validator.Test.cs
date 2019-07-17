@@ -44,6 +44,17 @@ public class TestRunner
         string test_folder = args[0];
         bool failed = false;
 
+        var reference_api_file = Path.Combine(test_folder, "efl_reference.api");
+        Exml.ApiModel.API api = null;
+
+        using (var reader = File.OpenRead(reference_api_file))
+        {
+            api = Exml.ApiModel.API.Deserialize(reader);
+        }
+
+        // Make sure we use the Reference API when validating stuff
+        Exml.XmlModel.Widget.SetApi(api);
+
         var tcases = from t in Assembly.GetExecutingAssembly().GetTypes()
             where t.IsClass && t.Namespace == "TestSuite"
             select t;
