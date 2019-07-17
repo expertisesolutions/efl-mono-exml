@@ -54,15 +54,11 @@ public static class ExmlValidator
                             }
                             var parent = current;
 
-                            try
-                            {
-                                current = new XmlModel.Widget(reader.Name, parent);
-                            }
-                            catch (ValidatorModel.ValidationException ex)
-                            {
-                                issues.AddRange(ex.Issues);
-                                reader.Skip();
-                            }
+                            current = new XmlModel.Widget();
+
+                            var constructingIssues = current.AddInfo(reader.Name, parent);
+                            constructingIssues.ForEach(issue => issue.AddContext(reader as IXmlLineInfo));
+                            issues.AddRange(constructingIssues);
 
                             if (reader.HasAttributes)
                             {

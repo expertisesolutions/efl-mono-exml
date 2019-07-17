@@ -25,14 +25,41 @@ public class Widget
     private bool _is_container;
     private ApiModel.Class _class;
 
-    public Widget(string name, Widget parent)
+    public Widget()
     {
-        // TODO: Rule -  is it a valid widget name?
-        Name = name;
-        // TODO: Is it a container?
         Attributes = new Dictionary<string, string>();
         Children = new List<Widget>();
+    }
+
+    public List<ValidatorModel.ValidationIssue> AddInfo(string name, Widget parent)
+    {
+        // RULE -  is it a valid widget name?
+        string internal_name = name;
+        var issues = new List<ValidatorModel.ValidationIssue>();
+
+        if (!internal_name.Contains("."))
+        {
+            internal_name = "Efl.Ui." + internal_name;
+        }
+
+        _class = s_api.Classes.Find(c => c.Name == internal_name);
+
+        if (_class == null)
+        {
+            issues.Add(new ValidatorModel.ValidationIssue($"Unknown type {name}", "Type could not be found in the Efl.Ui namespace",
+                                                          ValidatorModel.ValidationIssueSeverity.Error));
+        }
+
+        // TODO: Is it a container?
+        if (_class != null)
+        {
+            _is_container = _class.Interfaces.Find(i => i.Name == "Efl.IPack") != null;
+        }
+
+        Name = name;
         Parent = parent;
+
+        return issues;
     }
 
     public List<ValidatorModel.ValidationIssue> AddAttribute(string name, string value)
