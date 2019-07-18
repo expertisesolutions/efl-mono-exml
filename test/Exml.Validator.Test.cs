@@ -36,6 +36,10 @@ namespace TestSuite
         {
             var issues = ExmlValidator.Validate(Path.Combine(test_folder, "unknown_widget.xml"));
 
+            foreach (var i in issues)
+            {
+                Console.WriteLine($"{i.ToString()}");
+            }
             Test.AssertEquals(issues.Count, 1);
             var issue = issues[0];
             Test.AssertEquals(issue.Severity, ValidationIssueSeverity.Error);
@@ -43,6 +47,23 @@ namespace TestSuite
             Test.AssertEquals(issue.Position, 10);
             Test.AssertEquals(issue.Message, "Unknown type MyUnknownButton");
         }
+
+        public static void invalid_container(string test_folder)
+        {
+            var issues = ExmlValidator.Validate(Path.Combine(test_folder, "invalid_container.xml"));
+            foreach (var i in issues)
+            {
+                Console.WriteLine($"{i.ToString()}");
+            }
+
+            Test.AssertEquals(issues.Count, 1);
+            var issue = issues[0];
+            Test.AssertEquals(issue.Severity, ValidationIssueSeverity.Error);
+            Test.AssertEquals(issue.Line, 4);
+            Test.AssertEquals(issue.Position, 10);
+            Test.AssertEquals(issue.Message, "Type Button is not a container");
+        }
+
     }
 }
 

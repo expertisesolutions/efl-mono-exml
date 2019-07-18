@@ -53,7 +53,13 @@ public class Widget
         // TODO: Is it a container?
         if (_class != null)
         {
-            _is_container = _class.Interfaces.Find(i => i.Name == "Efl.Container") != null;
+            _is_container = _class.Interfaces.Find(i => i.Name == "Efl.IPack") != null;
+            Console.WriteLine($"Class {name} Is container? {_is_container}");
+            /* Console.WriteLine($"Class {name} implements the following interfaces:"); */
+            /* foreach (var iface in _class.Interfaces) */
+            /* { */
+            /*     Console.WriteLine($"----> {iface.Name}"); */
+            /* } */
         }
 
         Name = name;
@@ -73,8 +79,16 @@ public class Widget
     public List<ValidatorModel.ValidationIssue> AddChild(Widget child)
     {
         // TODO: Can we add this child (Is this a container?)?
+        var issues = new List<ValidatorModel.ValidationIssue>();
+        if (!_is_container)
+        {
+            issues.Add(new ValidatorModel.ValidationIssue($"Type {Name} is not a container", "It can't have children",
+                                                          ValidatorModel.ValidationIssueSeverity.Error));
+        }
+
+        // We still add so we can track the invalid information further down
         Children.Add(child);
-        return new List<ValidatorModel.ValidationIssue>();
+        return issues;
     }
 
     public override String ToString()

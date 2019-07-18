@@ -73,6 +73,7 @@ public static class ExmlValidator
                             if (parent != null)
                             {
                                 var parentIssues = parent.AddChild(current);
+                                parentIssues.ForEach(issue => issue.AddContext(reader as IXmlLineInfo));
                                 issues.AddRange(parentIssues);
                             }
 
@@ -90,6 +91,7 @@ public static class ExmlValidator
                             {
                                 Logger.Info($"Element {reader.Name} has no children. Not pushing...");
                                 current = parent;
+                                parent = current.Parent;
                             }
 
                             break;
@@ -99,6 +101,7 @@ public static class ExmlValidator
                                 continue; // Skip outer tag
                             }
                             current = stack.Pop();
+                            parent = current.Parent;
                             Logger.Info($"Popped element {current.Name}");
                             break;
                         default:
