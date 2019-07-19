@@ -43,6 +43,25 @@ namespace TestSuite
             Test.AssertEquals(issue.Position, 10);
             Test.AssertEquals(issue.Message, "Unknown type MyUnknownButton");
         }
+
+        public static void invalid_container(string test_folder)
+        {
+            var issues = ExmlValidator.Validate(Path.Combine(test_folder, "invalid_container.xml"));
+
+            Test.AssertEquals(issues.Count, 2);
+            var issue = issues[0];
+            Test.AssertEquals(issue.Severity, ValidationIssueSeverity.Error);
+            Test.AssertEquals(issue.Line, 4);
+            Test.AssertEquals(issue.Position, 10);
+            Test.AssertEquals(issue.Message, "Type Button is not a container");
+
+            issue = issues[1];
+            Test.AssertEquals(issue.Severity, ValidationIssueSeverity.Error);
+            Test.AssertEquals(issue.Line, 5);
+            Test.AssertEquals(issue.Position, 10);
+            Test.AssertEquals(issue.Message, "Type Button is not a container");
+        }
+
     }
 }
 
