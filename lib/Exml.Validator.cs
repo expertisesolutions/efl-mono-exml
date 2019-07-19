@@ -65,6 +65,7 @@ public static class ExmlValidator
                                     var attributeIssues = current.AddAttribute(reader.Name, reader.Value);
                                     issues.AddRange(attributeIssues);
                                 }
+                                reader.MoveToElement();
                             }
 
                             if (parent != null)
@@ -85,6 +86,7 @@ public static class ExmlValidator
                             else
                             {
                                 current = parent;
+                                parent = current.Parent;
                             }
 
                             break;
@@ -94,6 +96,7 @@ public static class ExmlValidator
                                 continue; // Skip outer tag
                             }
                             current = stack.Pop();
+                            parent = current.Parent;
                             break;
                         default:
                             break;
