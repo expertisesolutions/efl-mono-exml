@@ -34,7 +34,7 @@ namespace ApiModel
     }
 
     [Serializable]
-    public class TypeRef
+    public class TypeRef : IUniqueNameSortable
     {
         public string Name { get; private set; }
         public bool IsReference { get; private set; }
@@ -61,7 +61,7 @@ namespace ApiModel
     }
 
     [Serializable]
-    public class Parameter
+    public class Parameter : IUniqueNameSortable
     {
         public string Name { get; private set; }
         public TypeRef Type { get; private set; }
@@ -113,7 +113,7 @@ namespace ApiModel
     }
 
     [Serializable]
-    public class Function
+    public class Function : IUniqueNameSortable
     {
         public string Name { get; private set; }
         public TypeRef ReturnType { get; private set; }
@@ -237,7 +237,7 @@ namespace ApiModel
     }
 
     [Serializable]
-    public class Enum
+    public class Enum : IUniqueNameSortable
     {
         public string Name { get; private set; }
         public List<EnumField> Fields {get; private set; }
@@ -267,7 +267,7 @@ namespace ApiModel
     }
 
     [Serializable]
-    public class StructField
+    public class StructField : IUniqueNameSortable
     {
         public string Name { get; private set; }
         public TypeRef Type { get; private set; }
@@ -283,7 +283,7 @@ namespace ApiModel
     }
 
     [Serializable]
-    public class Struct
+    public class Struct : IUniqueNameSortable
     {
         public string Name { get; private set; }
         public List<StructField> Fields { get; private set; }
@@ -300,10 +300,10 @@ namespace ApiModel
             obj.Name = type.FullName;
 
             var fields = type.GetFields(BindingFlags.Public | BindingFlags.Instance);
-
+            obj.Fields.Capacity = fields.Length;
             foreach(var field in fields)
             {
-                obj.Fields.Add(StructField.From(field));
+                obj.Fields.AddByName(StructField.From(field));
             }
 
             return obj;
@@ -311,7 +311,7 @@ namespace ApiModel
     }
 
     [Serializable]
-    public class Property
+    public class Property : IUniqueNameSortable
     {
         public string Name { get; private set; }
         public TypeRef Type { get; private set; }
@@ -376,7 +376,7 @@ namespace ApiModel
     }
 
     [Serializable]
-    public class Event
+    public class Event : IUniqueNameSortable
     {
         public string Name { get; private set; }
         // Name of T in EventHandler<T>
@@ -415,7 +415,7 @@ namespace ApiModel
     }
 
     [Serializable]
-    public class Class
+    public class Class : IUniqueNameSortable
     {
         public string Name { get; private set; }
         public List<Function> Constructors { get; private set; }
@@ -451,35 +451,45 @@ namespace ApiModel
                 obj.Parent = TypeRef.From(type.BaseType);
             }
 
-            foreach(var iface in type.GetInterfaces())
+            var ifaces = type.GetInterfaces();
+            obj.Interfaces = ifaces.Length;
+            foreach(var iface in ifaces)
             {
-                obj.Interfaces.Add(TypeRef.From(iface));
+                obj.Interfaces.AddByName(TypeRef.From(iface));
             }
 
             // No to pass BindingFlags, already gets only the public constructors by default
-            foreach(var ctor in type.GetConstructors(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
+            var ctors = type.GetConstructors(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+            obj.Constructors.Capacity = ctors.Length;
+            foreach(var ctor in ctors)
             {
-                obj.Constructors.Add(Function.From(ctor));
+                obj.Constructors.AddByName(Function.From(ctor));
             }
 
             // FIXME Do we need to list static methods too?
-            foreach(var method in type.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
+            var methods = type.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+            obj.Methods.Capacity = methods.Length;
+            foreach(var method in methods)
             {
                 // Skip anonymous property accessors (get_Name)
                 if (!method.IsSpecialName)
                 {
-                    obj.Methods.Add(Function.From(method));
+                    obj.Methods.AddByName(Function.From(method));
                 }
             }
 
-            foreach(var property in type.GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
+            var properties = type.GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+            obj.Properties.Capacity = properties.Length;
+            foreach(var property in properties)
             {
-                obj.Properties.Add(Property.From(property));
+                obj.Properties.AddByName(Property.From(property));
             }
 
-            foreach (var evt in type.GetEvents(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
+            var events = type.GetEvents(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+            obj.Events.Capacity = events.Length;
+            foreach (var evt in events)
             {
-                obj.Events.Add(Event.From(evt));
+                obj.Events.AddByName(Event.From(evt));
             }
 
             return obj;
@@ -566,16 +576,16 @@ namespace ApiModel
                 switch (GetEntityKind(exportedType))
                 {
                     case EntityKind.Class:
-                        ret.Classes.Add(Class.From(exportedType));
+                        ret.Classes.AddByName(Class.From(exportedType));
                         break;
                     case EntityKind.Enum:
-                        ret.Enums.Add(Enum.From(exportedType));
+                        ret.Enums.AddByName(Enum.From(exportedType));
                         break;
                     case EntityKind.Function:
-                        ret.FunctionPointers.Add(Function.From(exportedType));
+                        ret.FunctionPointers.AddByName(Function.From(exportedType));
                         break;
                     case EntityKind.Struct:
-                        ret.Structs.Add(Struct.From(exportedType));
+                        ret.Structs.AddByName(Struct.From(exportedType));
                         break;
                     default:
                         throw new ArgumentException($"Failed to get entity Type of type {exportedType.FullName}");

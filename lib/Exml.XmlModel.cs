@@ -73,7 +73,33 @@ public class Widget
         // TODO: Rule: Does the property exist?
         // TODO: Rule: Is the property writable?
         // TODO: Rule: Is the value acceptable for the property?
-        return new List<ValidatorModel.ValidationIssue>();
+        var issues = new List<ValidatorModel.ValidationIssue>();
+
+        if (Attributes.TryGetValue(name, out string currentValue))
+        {
+            issues.Add(new ValidatorModel.ValidationIssue($"Unknown type {name}", "Type could not be found in the Efl.Ui namespace",
+                                                          ValidatorModel.ValidationIssueSeverity.Error));
+        }
+
+        var property = _class.Properties.GetByName(name);
+        if (property != null)
+        {
+            if (!property.HasSet || property.GetVisibility() != Visibility.Public)
+            {
+                issues.Add(new ValidatorModel.ValidationIssue($"Unknown type {name}", "Type could not be found in the Efl.Ui namespace",
+                                                              ValidatorModel.ValidationIssueSeverity.Error));
+            }
+
+            if (!IsValueCompatible(property, value))
+            {
+                issues.Add(new ValidatorModel.ValidationIssue($"Unknown type {name}", "Type could not be found in the Efl.Ui namespace",
+                                                              ValidatorModel.ValidationIssueSeverity.Error));
+            }
+        }
+
+        Attributes[name] = value;
+
+        return issues;
     }
 
     public List<ValidatorModel.ValidationIssue> AddChild(Widget child)
@@ -122,6 +148,33 @@ public class Widget
     public static void SetApi(ApiModel.API api)
     {
         s_api = api;
+    }
+
+    private bool IsValueCompatible(ApiModel.TypeRef type, string value, ref List<ValidatorModel.ValidationIssue> issues)
+    {
+        try
+        {
+            switch (type.Name)
+            {
+                case "System.Int16": Int16.Parse(value); break;
+                case "System.Int32": Int32.Parse(value); break;
+                case "System.Int64": Int64.Parse(value); break;
+                case "System.Byte": Byte.Parse(value); break;
+                case "System.UInt16": UInt16.Parse(value); break;
+                case "System.UInt32": UInt32.Parse(value); break;
+                case "System.UInt64": UInt64.Parse(value); break;
+                case "System.Single": Single.Parse(value); break;
+                case "System.Double": Double.Parse(value); break;
+                case "System.Decimal": Decimal.Parse(value); break;
+                default: return true;
+            }
+        }
+        catch (Exception e)
+        {
+            return false;
+        }
+
+        return true
     }
 }
 
