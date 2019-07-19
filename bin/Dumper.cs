@@ -10,9 +10,9 @@ public class Dumper
             Console.WriteLine("Must provide a filename");
             return;
         }
-        ApiDump.Logging.Logger.AddConsoleLogger();
+        Exml.Logging.Logger.AddConsoleLogger();
 
-        var api = ApiDump.API.Parse(args[0]);
+        var api = Exml.ApiModel.API.Parse(args[0]);
 
         var filename = Path.GetFileName(args[0]);
         filename += ".api";
@@ -24,7 +24,7 @@ public class Dumper
         Dump("api.yaml", api);
     }
 
-    public static void Dump(string filename, ApiDump.API api)
+    public static void Dump(string filename, Exml.ApiModel.API api)
     {
         using (System.IO.StreamWriter file = new System.IO.StreamWriter(filename))
         {

@@ -1,2 +1,2 @@
 
-dumper = executable('apidumper', ['Dumper.cs'], link_with: apidump_lib)
+dumper = executable('apidumper', ['Dumper.cs'], link_with: exml_lib)

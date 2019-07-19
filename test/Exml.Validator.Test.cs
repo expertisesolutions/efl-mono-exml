@@ -7,6 +7,7 @@ using System.Xml;
 using System.Xml.Schema;
 
 using Exml.Validator;
+using Exml.ValidatorModel;
 
 namespace TestSuite
 {
@@ -14,12 +15,51 @@ namespace TestSuite
     {
         public static void valid(string test_folder)
         {
-            ExmlValidator.Validate(Path.Combine(test_folder, "hello_valid.xml"));
+            var issues = ExmlValidator.Validate(Path.Combine(test_folder, "hello_valid.xml"));
+            Test.AssertEquals(issues.Count, 0);
         }
 
         public static void invalid(string test_folder)
         {
-            Test.AssertRaises<XmlException>(() => ExmlValidator.Validate(Path.Combine(test_folder, "invalid_xml.xml")));
+            var issues = ExmlValidator.Validate(Path.Combine(test_folder, "invalid_xml.xml"));
+
+            Test.AssertEquals(issues.Count, 1);
+
+            var issue = issues[0];
+
+            Test.AssertEquals(issue.Severity, ValidationIssueSeverity.CriticalError);
+            Test.AssertEquals(issue.Line, 9);
+            Test.AssertEquals(issue.Position, 3);
+        }
+
+        public static void unkown_tag(string test_folder)
+        {
+            var issues = ExmlValidator.Validate(Path.Combine(test_folder, "unknown_widget.xml"));
+
+            Test.AssertEquals(issues.Count, 1);
+            var issue = issues[0];
+            Test.AssertEquals(issue.Severity, ValidationIssueSeverity.Error);
+            Test.AssertEquals(issue.Line, 4);
+            Test.AssertEquals(issue.Position, 10);
+            Test.AssertEquals(issue.Message, "Unknown type MyUnknownButton");
+        }
+
+        public static void invalid_container(string test_folder)
+        {
+            var issues = ExmlValidator.Validate(Path.Combine(test_folder, "invalid_container.xml"));
+
+            Test.AssertEquals(issues.Count, 2);
+            var issue = issues[0];
+            Test.AssertEquals(issue.Severity, ValidationIssueSeverity.Error);
+            Test.AssertEquals(issue.Line, 4);
+            Test.AssertEquals(issue.Position, 10);
+            Test.AssertEquals(issue.Message, "Type Button is not a container");
+
+            issue = issues[1];
+            Test.AssertEquals(issue.Severity, ValidationIssueSeverity.Error);
+            Test.AssertEquals(issue.Line, 5);
+            Test.AssertEquals(issue.Position, 10);
+            Test.AssertEquals(issue.Message, "Type Button is not a container");
         }
 
     }
@@ -30,9 +70,20 @@ public class TestRunner
     static void Main(string[] args)
     {
         // FIXME control verbosity with `meson test -v`
-        ApiDump.Logging.Logger.AddConsoleLogger();
+        Exml.Logging.Logger.AddConsoleLogger();
         string test_folder = args[0];
         bool failed = false;
+
+        var reference_api_file = Path.Combine(test_folder, "efl_reference.api");
+        Exml.ApiModel.API api = null;
+
+        using (var reader = File.OpenRead(reference_api_file))
+        {
+            api = Exml.ApiModel.API.Deserialize(reader);
+        }
+
+        // Make sure we use the Reference API when validating stuff
+        Exml.XmlModel.Widget.SetApi(api);
 
         var tcases = from t in Assembly.GetExecutingAssembly().GetTypes()
             where t.IsClass && t.Namespace == "TestSuite"

@@ -3,14 +3,13 @@ using System.Reflection;
 using System.Linq;
 using System.Collections.Generic;
 
-using ApiDump;
-
+using ApiModel = Exml.ApiModel;
 
 namespace TestSuite
 {
     public class EmptyClass
     {
-        public static void empty_class(API api)
+        public static void empty_class(ApiModel.API api)
         {
             var cls = api.Classes.Single(x => x.Name == "Dummy.EmptyClass");
 
@@ -22,7 +21,7 @@ namespace TestSuite
 
     public class SimpleClass
     {
-        public static void constructors(API api)
+        public static void constructors(ApiModel.API api)
         {
             var cls = api.Classes.Single(x => x.Name == "Dummy.Parent");
             Test.AssertEquals(cls.Constructors.Count, 2);
@@ -31,11 +30,11 @@ namespace TestSuite
 
             var default_ctor = ctors[0];
             Test.AssertEquals(default_ctor.Parameters.Count, 0);
-            Test.AssertEquals(default_ctor.Visibility, ApiDump.Model.Visibility.Protected);
+            Test.AssertEquals(default_ctor.Visibility, ApiModel.Visibility.Protected);
 
             var param_ctor = ctors[1];
             Test.AssertEquals(param_ctor.Parameters.Count, 2);
-            Test.AssertEquals(param_ctor.Visibility, ApiDump.Model.Visibility.Public);
+            Test.AssertEquals(param_ctor.Visibility, ApiModel.Visibility.Public);
 
             var first_param = param_ctor.Parameters[0];
             Test.AssertEquals(first_param.Name, "x");
@@ -46,25 +45,25 @@ namespace TestSuite
             Test.AssertEquals(second_param.Type.Name, "System.Double");
         }
 
-        public static void pub_method_visibility(API api)
+        public static void pub_method_visibility(ApiModel.API api)
         {
             var cls = api.Classes.Single(x => x.Name == "Dummy.Parent");
             var pubMeth = cls.Methods.Single(x => x.Name == "PublicMeth");
 
-            Test.AssertEquals(pubMeth.Visibility, ApiDump.Model.Visibility.Public);
+            Test.AssertEquals(pubMeth.Visibility, ApiModel.Visibility.Public);
         }
 
-        public static void prot_method_visibility(API api)
+        public static void prot_method_visibility(ApiModel.API api)
         {
             var cls = api.Classes.Single(x => x.Name == "Dummy.Parent");
             var protMeth = cls.Methods.Single(x => x.Name == "ProtectedMeth");
-            Test.AssertEquals(protMeth.Visibility, ApiDump.Model.Visibility.Protected);
+            Test.AssertEquals(protMeth.Visibility, ApiModel.Visibility.Protected);
         }
     }
 
     public class Events
     {
-        public static void get_all_events(API api)
+        public static void get_all_events(ApiModel.API api)
         {
             var cls = api.Classes.Single(x => x.Name == "Dummy.Parent");
             Test.AssertEquals(cls.Events.Count, 2);
@@ -74,26 +73,26 @@ namespace TestSuite
             var clicked = evts[0];
             Test.AssertEquals(clicked.Name, "Clicked");
             Test.AssertEquals(clicked.Type.Name, "System.EventArgs");
-            Test.AssertEquals(clicked.Visibility, ApiDump.Model.Visibility.Public);
+            Test.AssertEquals(clicked.Visibility, ApiModel.Visibility.Public);
 
             var customEvt = evts[1];
             Test.AssertEquals(customEvt.Name, "CustomEvent");
             Test.AssertEquals(customEvt.Type.Name, "Dummy.CustomArgs");
-            Test.AssertEquals(customEvt.Visibility, ApiDump.Model.Visibility.Protected);
+            Test.AssertEquals(customEvt.Visibility, ApiModel.Visibility.Protected);
 
         }
     }
 
     public class Properties
     {
-        public static void get_property_count(API api)
+        public static void get_property_count(ApiModel.API api)
         {
             var cls = api.Classes.Single(x => x.Name == "Dummy.Parent");
             Test.AssertEquals(cls.Properties.Count, 4);
         }
 
 
-        public static void get_set_property(API api)
+        public static void get_set_property(ApiModel.API api)
         {
             var cls = api.Classes.Single(x => x.Name == "Dummy.Parent");
             var getSet = cls.Properties.Single(x => x.Name == "PropGetSet");
@@ -104,12 +103,12 @@ namespace TestSuite
             Test.Assert(getSet.HasGetSet);
             Test.AssertEquals(getSet.ToString(), "public System.Int32 PropGetSet { get; set; }");
 
-            Test.AssertEquals(getSet.Visibility, ApiDump.Model.Visibility.Public);
-            Test.AssertEquals(getSet.GetVisibility, ApiDump.Model.Visibility.Public);
-            Test.AssertEquals(getSet.SetVisibility, ApiDump.Model.Visibility.Public);
+            Test.AssertEquals(getSet.Visibility, ApiModel.Visibility.Public);
+            Test.AssertEquals(getSet.GetVisibility, ApiModel.Visibility.Public);
+            Test.AssertEquals(getSet.SetVisibility, ApiModel.Visibility.Public);
         }
 
-        public static void get_only_property(API api)
+        public static void get_only_property(ApiModel.API api)
         {
             var cls = api.Classes.Single(x => x.Name == "Dummy.Parent");
             var getOnly = cls.Properties.Single(x => x.Name == "PropGetOnly");
@@ -120,12 +119,12 @@ namespace TestSuite
             Test.Assert(!getOnly.HasGetSet);
             Test.AssertEquals(getOnly.ToString(), "public System.String PropGetOnly { get; }");
 
-            Test.AssertEquals(getOnly.Visibility, ApiDump.Model.Visibility.Public);
-            Test.AssertEquals(getOnly.GetVisibility, ApiDump.Model.Visibility.Public);
-            Test.AssertEquals(getOnly.SetVisibility, ApiDump.Model.Visibility.Other);
+            Test.AssertEquals(getOnly.Visibility, ApiModel.Visibility.Public);
+            Test.AssertEquals(getOnly.GetVisibility, ApiModel.Visibility.Public);
+            Test.AssertEquals(getOnly.SetVisibility, ApiModel.Visibility.Other);
         }
 
-        public static void set_only_property(API api)
+        public static void set_only_property(ApiModel.API api)
         {
             var cls = api.Classes.Single(x => x.Name == "Dummy.Parent");
             var setOnly = cls.Properties.Single(x => x.Name == "PropSetOnly");
@@ -136,12 +135,12 @@ namespace TestSuite
             Test.Assert(!setOnly.HasGetSet);
             Test.AssertEquals(setOnly.ToString(), "protected System.Double PropSetOnly { set; }");
 
-            Test.AssertEquals(setOnly.Visibility, ApiDump.Model.Visibility.Protected);
-            Test.AssertEquals(setOnly.GetVisibility, ApiDump.Model.Visibility.Other);
-            Test.AssertEquals(setOnly.SetVisibility, ApiDump.Model.Visibility.Protected);
+            Test.AssertEquals(setOnly.Visibility, ApiModel.Visibility.Protected);
+            Test.AssertEquals(setOnly.GetVisibility, ApiModel.Visibility.Other);
+            Test.AssertEquals(setOnly.SetVisibility, ApiModel.Visibility.Protected);
         }
 
-        public static void get_private_set_property(API api)
+        public static void get_private_set_property(ApiModel.API api)
         {
             var cls = api.Classes.Single(x => x.Name == "Dummy.Parent");
             var privateSet = cls.Properties.Single(x => x.Name == "PropPrivateSet");
@@ -152,15 +151,15 @@ namespace TestSuite
             Test.Assert(!privateSet.HasGetSet);
             Test.AssertEquals(privateSet.ToString(), "public System.Int32 PropPrivateSet { get; }");
 
-            Test.AssertEquals(privateSet.Visibility, ApiDump.Model.Visibility.Public);
-            Test.AssertEquals(privateSet.GetVisibility, ApiDump.Model.Visibility.Public);
-            Test.AssertEquals(privateSet.SetVisibility, ApiDump.Model.Visibility.Other);
+            Test.AssertEquals(privateSet.Visibility, ApiModel.Visibility.Public);
+            Test.AssertEquals(privateSet.GetVisibility, ApiModel.Visibility.Public);
+            Test.AssertEquals(privateSet.SetVisibility, ApiModel.Visibility.Other);
         }
     }
 
     public class Serialization
     {
-        public static void test_serialization(API api)
+        public static void test_serialization(ApiModel.API api)
         {
             var memory = new System.IO.MemoryStream();
 
@@ -168,9 +167,9 @@ namespace TestSuite
 
             memory.Position = 0;
 
-            var copy = API.Deserialize(memory);
+            var copy = ApiModel.API.Deserialize(memory);
 
-            Func<API, List<string> > GetNames = (API data) => {
+            Func<ApiModel.API, List<string> > GetNames = (ApiModel.API data) => {
                 List<string> acc = new List<string>();
 
                 acc.AddRange(data.Classes.Select(x => x.Name).OrderBy(x => x).ToList());
@@ -196,7 +195,7 @@ public class TestRunner
     {
         // FIXME control verbosity with `meson test -v`
         /* ApiDump.Logging.Logger.AddConsoleLogger(); */
-        var api = ApiDump.API.Parse(args[0]);
+        var api = ApiModel.API.Parse(args[0]);
         bool failed = false;
 
         var tcases = from t in Assembly.GetExecutingAssembly().GetTypes()

@@ -6,135 +6,111 @@ using System.Text;
 using System.Xml.Schema;
 using System.Collections.Generic;
 
-using ApiDump.Logging;
+using Exml.Logging;
 
 namespace Exml
 {
+
 namespace Validator
 {
 
-// Internal representation of the EXML while we read it
-internal class Widget
-{
-    public string Name { get; set; }
-    public Dictionary<string, string> Attributes { get; set; }
-    public List<Widget> Children { get; set; }
-    public Widget Parent { get; set; }
-
-    public Widget()
-    {
-        Attributes = new Dictionary<string, string>();
-        Children = new List<Widget>();
-    }
-
-    public override String ToString()
-    {
-        return ToString(0);
-    }
-
-    public string ToString(int indent)
-    {
-        var spaces = new String(' ', 4 * indent);
-        var sb = new StringBuilder();
-
-        sb.AppendLine(spaces + $"Widget: {Name}");
-
-        foreach (var entry in Attributes)
-        {
-            sb.AppendLine(spaces + $"    attrib: {entry.Key} => {entry.Value}");
-        }
-
-        if (Children.Count > 0)
-        {
-            foreach (var child in Children)
-            {
-                sb.AppendLine(spaces + child.ToString(indent + 1));
-            }
-        }
-
-        return sb.ToString();
-    }
-}
-
 public static class ExmlValidator
 {
-    public static void Validate(string path)
+    public static List<ValidatorModel.ValidationIssue> Validate(string path)
     {
         using (var file = File.OpenRead(path))
         {
-            Validate(file);
+            return Validate(file);
         }
     }
 
-    public static void Validate(Stream stream)
+    public static List<ValidatorModel.ValidationIssue> Validate(Stream stream)
     {
         // FIXME Maybe we should parametrize the settings
+        var issues = new List<ValidatorModel.ValidationIssue>();
         var settings = new XmlReaderSettings();
         settings.ConformanceLevel = ConformanceLevel.Document;
 
         using (var reader = XmlReader.Create(stream, settings))
         {
-            Stack<Widget> stack = new Stack<Widget>();
-            Widget root = null;
-            Widget current = null;
+            Stack<XmlModel.Widget> stack = new Stack<XmlModel.Widget>();
+            XmlModel.Widget root = null;
+            XmlModel.Widget current = null;
 
-            while (reader.Read())
+            try
             {
-
-                switch (reader.NodeType)
+                while (reader.Read())
                 {
-                    case XmlNodeType.Element:
-                        Logger.Info($"Got element {reader.Name}");
-                        var parent = current;
+                    switch (reader.NodeType)
+                    {
+                        case XmlNodeType.Element:
 
-                        current = new Widget();
-                        current.Parent = parent;
-                        current.Name = reader.Name;
-                        // Do we need to remember before advancing to the attributes?
-                        bool isEmptyElement = reader.IsEmptyElement;
-
-                        if (reader.HasAttributes)
-                        {
-                            while (reader.MoveToNextAttribute())
+                            // FIXME: Guarantee there is no more than one root inside exml
+                            if (reader.Name == "exml")
                             {
-                                Logger.Info($"Adding attribute {reader.Name} valued {reader.Value}");
-                                current.Attributes[reader.Name] = reader.Value;
+                                continue; // Skip the outer tag
                             }
-                        }
+                            var parent = current;
 
-                        if (parent != null)
-                        {
-                            parent.Children.Add(current);
-                        }
+                            current = new XmlModel.Widget();
 
-                        if (root == null)
-                        {
-                            root = current;
-                        }
+                            var constructingIssues = current.AddInfo(reader.Name, parent);
+                            constructingIssues.ForEach(issue => issue.AddContext(reader as IXmlLineInfo));
+                            issues.AddRange(constructingIssues);
 
-                        if (!reader.IsEmptyElement)
-                        {
-                            Logger.Info($"Pushing element {current.Name}");
-                            stack.Push(current);
-                        }
-                        else
-                        {
-                            Logger.Info($"Element {reader.Name} has no children. Not pushing...");
-                            current = parent;
-                        }
+                            if (reader.HasAttributes)
+                            {
+                                while (reader.MoveToNextAttribute())
+                                {
+                                    var attributeIssues = current.AddAttribute(reader.Name, reader.Value);
+                                    issues.AddRange(attributeIssues);
+                                }
+                                reader.MoveToElement();
+                            }
 
-                        break;
-                    case XmlNodeType.EndElement:
-                        current = stack.Pop();
-                        Logger.Info($"Popped element {current.Name}");
-                        break;
-                    default:
-                        Logger.Info($"Node {reader.NodeType} with value {reader.Value}");
-                        break;
+                            if (parent != null)
+                            {
+                                var parentIssues = parent.AddChild(current);
+                                parentIssues.ForEach(issue => issue.AddContext(reader as IXmlLineInfo));
+                                issues.AddRange(parentIssues);
+                            }
+
+                            if (root == null)
+                            {
+                                root = current;
+                            }
+
+                            if (!reader.IsEmptyElement)
+                            {
+                                stack.Push(current);
+                            }
+                            else
+                            {
+                                current = parent;
+                                parent = current.Parent;
+                            }
+
+                            break;
+                        case XmlNodeType.EndElement:
+                            if (reader.Name == "exml")
+                            {
+                                continue; // Skip outer tag
+                            }
+                            current = stack.Pop();
+                            parent = current.Parent;
+                            break;
+                        default:
+                            break;
+                    }
                 }
             }
+            catch (XmlException ex)
+            {
+                issues.Add(new ValidatorModel.ValidationIssue("Failed to read XML file.", ex.Message,
+                           ValidatorModel.ValidationIssueSeverity.CriticalError, reader as IXmlLineInfo));
+            }
 
-            Logger.Info($"Got tree: {root}");
+            return issues;
         }
     }
 }
