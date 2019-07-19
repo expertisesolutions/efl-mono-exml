@@ -6,4 +6,4 @@ exml_lib = library('exml', [
     'Exml.ValidatorModel.cs'
 ], cs_args : ['/reference:System.Xml.Linq.dll'])
 
-mono_path = meson.current_build_dir()
+exml_mono_path = meson.current_build_dir()

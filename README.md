@@ -11,7 +11,9 @@ It will be composed of:
 
 # Building and testing
 
-EXML# currently uses [Meson](https://mesonbuild.com/) and Mono for building. Dotnet core integration is also planned.
+EXML# currently uses [Meson](https://mesonbuild.com/), Mono and EFL# (the latter
+for testing purposes for now, builtin) for building. Dotnet core integration is
+also planned.
 
 ```
 $ meson build
