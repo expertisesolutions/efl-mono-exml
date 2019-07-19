@@ -73,8 +73,16 @@ public class Widget
     public List<ValidatorModel.ValidationIssue> AddChild(Widget child)
     {
         // TODO: Can we add this child (Is this a container?)?
+        var issues = new List<ValidatorModel.ValidationIssue>();
+        if (!_is_container)
+        {
+            issues.Add(new ValidatorModel.ValidationIssue($"Type {Name} is not a container", "It can't have children",
+                                                          ValidatorModel.ValidationIssueSeverity.Error));
+        }
+
+        // We still add so we can track the invalid information further down
         Children.Add(child);
-        return new List<ValidatorModel.ValidationIssue>();
+        return issues;
     }
 
     public override String ToString()

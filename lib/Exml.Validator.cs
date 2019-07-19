@@ -71,6 +71,7 @@ public static class ExmlValidator
                             if (parent != null)
                             {
                                 var parentIssues = parent.AddChild(current);
+                                parentIssues.ForEach(issue => issue.AddContext(reader as IXmlLineInfo));
                                 issues.AddRange(parentIssues);
                             }
 
