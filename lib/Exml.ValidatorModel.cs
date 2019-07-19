@@ -45,7 +45,6 @@ public class ValidationIssue
         {
             Line = lineInfo.LineNumber;
             Position = lineInfo.LinePosition;
-            Logger.Info($"Added line info at line {Line} and position {Position}");
         }
     }
 

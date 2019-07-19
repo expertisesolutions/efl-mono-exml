@@ -41,11 +41,9 @@ public static class ExmlValidator
             {
                 while (reader.Read())
                 {
-
                     switch (reader.NodeType)
                     {
                         case XmlNodeType.Element:
-                            Logger.Info($"Got element {reader.Name}");
 
                             // FIXME: Guarantee there is no more than one root inside exml
                             if (reader.Name == "exml")
@@ -64,7 +62,6 @@ public static class ExmlValidator
                             {
                                 while (reader.MoveToNextAttribute())
                                 {
-                                    Logger.Info($"Adding attribute {reader.Name} valued {reader.Value}");
                                     var attributeIssues = current.AddAttribute(reader.Name, reader.Value);
                                     issues.AddRange(attributeIssues);
                                 }
@@ -83,12 +80,10 @@ public static class ExmlValidator
 
                             if (!reader.IsEmptyElement)
                             {
-                                Logger.Info($"Pushing element {current.Name}");
                                 stack.Push(current);
                             }
                             else
                             {
-                                Logger.Info($"Element {reader.Name} has no children. Not pushing...");
                                 current = parent;
                             }
 
@@ -99,10 +94,8 @@ public static class ExmlValidator
                                 continue; // Skip outer tag
                             }
                             current = stack.Pop();
-                            Logger.Info($"Popped element {current.Name}");
                             break;
                         default:
-                            Logger.Info($"Node {reader.NodeType} with value {reader.Value}");
                             break;
                     }
                 }
@@ -112,8 +105,6 @@ public static class ExmlValidator
                 issues.Add(new ValidatorModel.ValidationIssue("Failed to read XML file.", ex.Message,
                            ValidatorModel.ValidationIssueSeverity.CriticalError, reader as IXmlLineInfo));
             }
-
-            Logger.Info($"Got tree: {root}");
 
             return issues;
         }
