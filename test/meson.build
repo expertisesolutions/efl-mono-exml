@@ -8,7 +8,7 @@ apidump_suite = executable('apidump_test_suite',
 
 validator_suite = executable('validator_test_suite',
                              ['Exml.Validator.Test.cs'],
-                             link_with: [validator_lib, test_lib])
+                             link_with: [validator_lib, test_lib, apidump_lib])
 
 testenv = environment()
 
