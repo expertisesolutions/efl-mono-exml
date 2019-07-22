@@ -62,17 +62,81 @@ public class Widget
         return issues;
     }
 
-    public List<ValidatorModel.ValidationIssue> AddAttribute(string name, string value)
+    public List<ValidatorModel.ValidationIssue> AddAttribute(string attrName, string value)
     {
-        // TODO: Rule: Does the property exist?
-        // TODO: Rule: Is the property writable?
-        // TODO: Rule: Is the value acceptable for the property?
-        return new List<ValidatorModel.ValidationIssue>();
+        var issues = new List<ValidatorModel.ValidationIssue>();
+
+        if (_class == null)
+        {
+            // Silently fail as we have no way of checking validity of an unkown type.
+            return issues;
+        }
+
+        if (String.IsNullOrEmpty(attrName))
+        {
+            issues.Add(new ValidatorModel.ValidationIssue("Null or empty attribute name", "", ValidatorModel.ValidationIssueSeverity.Error));
+            return issues; // No sense continue checking from here
+        }
+
+
+        if (!attrName.StartsWith("efl:"))
+        {
+            // Silently ignore.
+            // This must be something else not related to EFL.
+            return issues;
+        }
+
+        // Skip prefix "efl:" and capitalize first letter
+        var prefix = "efl:";
+        var actualName =  attrName.Substring(prefix.Length, 1).ToUpper() + attrName.Substring(prefix.Length + 1);
+
+        if (actualName.EndsWith("Evt"))
+        {
+            // Events
+            var evt = _class.Events.Find(e => e.Name == actualName);
+
+            if (evt == null)
+            {
+                issues.Add(new ValidatorModel.ValidationIssue($"Event \"{attrName.Substring(prefix.Length)}\" does not exist in \"{Name}\"",
+                                                              "",
+                                                              ValidatorModel.ValidationIssueSeverity.Error));
+            }
+            // TODO: Actually store this event somewhere and its value for code generation.
+
+            // TODO: Rule: Is Event name well formed (Valid C# Method name)?
+        }
+        else
+        {
+            // Properties
+            var prop = _class.Properties.Find(p => p.Name == actualName);
+
+            if (prop == null)
+            {
+                var setter = _class.Methods.Find(m => m.Name == "Set" + actualName);
+                // Some properties like `Efl.IText.Text` are not generated as C# property wrappers
+                // due to conflicts with some implementing classes like `Efl.Ui.Text` (the constructor
+                // would clash with the property wrapper).
+                // If this is the case, we check if there is a `SetFoo` method that takes 1 parameter
+                // to be used as a replacement.
+                if (setter == null || setter.Parameters.Count != 1)
+                {
+                    // Yep. Isto non ecziste
+                    issues.Add(new ValidatorModel.ValidationIssue($"Property \"{attrName.Substring(prefix.Length)}\" does not exist in \"{Name}\"",
+                                                                  "",
+                                                                  ValidatorModel.ValidationIssueSeverity.Error));
+                }
+            }
+            // TODO: Actually store this property somewhere and its value for code generation.
+
+            // TODO: Rule: Is the property writable?
+            // TODO: Rule: Is the value acceptable for the property?
+        }
+
+        return issues;
     }
 
     public List<ValidatorModel.ValidationIssue> AddChild(Widget child)
     {
-        // TODO: Can we add this child (Is this a container?)?
         var issues = new List<ValidatorModel.ValidationIssue>();
         if (!_is_container)
         {

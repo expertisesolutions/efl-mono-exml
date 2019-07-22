@@ -62,6 +62,27 @@ namespace TestSuite
             Test.AssertEquals(issue.Message, "Type Button is not a container");
         }
 
+        public static void non_existent_properties(string test_folder)
+        {
+            var issues = ExmlValidator.Validate(Path.Combine(test_folder, "non_existent_members.xml"));
+
+            Test.AssertEquals(issues.Count, 2);
+
+            // Property issue
+            var issue = issues[0];
+            Test.AssertEquals(issue.Severity, ValidationIssueSeverity.Error);
+            Test.AssertEquals(issue.Line, 5);
+            Test.AssertEquals(issue.Position, 17);
+            Test.AssertEquals(issue.Message, "Property \"nontext\" does not exist in \"Button\"");
+
+            // Event issue
+            issue = issues[1];
+            Test.AssertEquals(issue.Severity, ValidationIssueSeverity.Error);
+            Test.AssertEquals(issue.Line, 5);
+            Test.AssertEquals(issue.Position, 38);
+            Test.AssertEquals(issue.Message, "Event \"wtfEvt\" does not exist in \"Button\"");
+        }
+
     }
 }
 

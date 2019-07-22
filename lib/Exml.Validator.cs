@@ -63,6 +63,7 @@ public static class ExmlValidator
                                 while (reader.MoveToNextAttribute())
                                 {
                                     var attributeIssues = current.AddAttribute(reader.Name, reader.Value);
+                                    attributeIssues.ForEach(issue => issue.AddContext(reader as IXmlLineInfo));
                                     issues.AddRange(attributeIssues);
                                 }
                                 reader.MoveToElement();
