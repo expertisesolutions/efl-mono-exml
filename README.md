@@ -33,11 +33,98 @@ Sample EXML# file:
 <?xml version="1.0" encoding="utf-8"?>
 <exml xmlns:efl="http://www.enlightenment.org/EXML">
 <Box efl:orientation="Vertical">
-        <Button efl:text="Ok" />
-        <Button efl:text="Cancel" />
+        <Button efl:text="Ok" efl:clickedEvt="OnOkClicked"/>
+        <Button efl:text="Cancel" efl:clickedEvt="OnCancelClicked"/>
 </Box>
 </exml>
 ```
+
+## EXML details
+
+### Tag names - Widget classes
+
+Tag names represents the widgets to be instantiated.The names can be represented
+fully qualified or as local names to the `Efl.Ui` namespace. In the example
+below, both tags refer to the same Widget.
+
+```xml
+<Button />
+<Efl.Ui.Button />
+```
+
+> RULE: Tag names must resolve to valid widget names.
+
+> If an unkown tag name is encountered, an validation `Error` is generated.
+
+### Tag nesting - Containers
+
+Widgets that inherit from `Efl.IPack` are considered containers and can have
+others widgets as children, including other containers.
+
+```xml
+<Box>
+    <Text />
+    <Box>
+        <Button />
+        <Button />
+    </Box>
+</Box>
+```
+
+> RULE: Only container tags can have children tags.
+
+> If a non-container widget (e.g. `Button`) has children, an validation `Error`
+> will be generated.
+
+### Tag attributes - Properties and Events
+
+Attributes are used for both setting properties on the widgets and attaching
+events to callbacks.
+
+EFL properties and events are namespaced with `efl:`. Properties are
+`camelCased` in contrast with `PascalCased` which is the style of C#. In the
+example below, the `Text` property will received the text `"Click Me"` after
+being instantiated.
+
+```xml
+<Button efl:text="Click Me"/>
+```
+
+Events are also `camelCased` like properties:
+
+```xml
+<Button efl:text="Click Me" efl:clickedEvt="ClickButtonHandler" />
+```
+
+The tag above will have the callback `ClickButtonHandler` attached to its
+`ClickedEvt`
+
+> RULE: properties and event attributes must point to existing members.
+
+> If an attribute points to a non-existing member, an `Error` will be generated.
+
+Also for properties, it only makes sense to assign values for writeable
+properties.
+
+> RULE: For properties, the property must be writeable to receive a value.
+
+> If an attribute points to a read-only property, a `Warning` will be generated.
+
+For events, the callback to be attached must be a valid C# method name or the
+compilation would fail.
+
+> RULE: For events, the attribute value must be a valid C# method name.
+
+> If the callback of an event is not a valid name, a `Error` will be generated.
+
+### Future work
+
+Here is a list of items to be defined as the format evolves and feedback both
+from users and code generation is received:
+
+- [ ] Custom classes
+- [ ] Non-ui classes (like `Spotlight.Manager`)
+- [ ] Constructor parameters
 
 # Validation Library Architecture
 
