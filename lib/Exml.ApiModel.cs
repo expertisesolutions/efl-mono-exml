@@ -38,11 +38,13 @@ namespace ApiModel
     {
         public string Name { get; private set; }
         public bool IsReference { get; private set; }
+        public System.Type AssemblyType { get; private set; }
 
         public static TypeRef From(System.Type type)
         {
             var obj = new TypeRef();
             obj.Name = type.FullName;
+            obj.AssemblyType = type;
 
             obj.IsReference = type.IsByRef;
 
@@ -300,7 +302,7 @@ namespace ApiModel
             obj.Name = type.FullName;
 
             var fields = type.GetFields(BindingFlags.Public | BindingFlags.Instance);
-
+            obj.Fields.Capacity = fields.Length;
             foreach(var field in fields)
             {
                 obj.Fields.Add(StructField.From(field));
@@ -451,19 +453,25 @@ namespace ApiModel
                 obj.Parent = TypeRef.From(type.BaseType);
             }
 
-            foreach(var iface in type.GetInterfaces())
+            var ifaces = type.GetInterfaces();
+            obj.Interfaces.Capacity = ifaces.Length;
+            foreach(var iface in ifaces)
             {
                 obj.Interfaces.Add(TypeRef.From(iface));
             }
 
             // No to pass BindingFlags, already gets only the public constructors by default
-            foreach(var ctor in type.GetConstructors(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
+            var ctors = type.GetConstructors(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+            obj.Constructors.Capacity = ctors.Length;
+            foreach(var ctor in ctors)
             {
                 obj.Constructors.Add(Function.From(ctor));
             }
 
             // FIXME Do we need to list static methods too?
-            foreach(var method in type.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
+            var methods = type.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+            obj.Methods.Capacity = methods.Length;
+            foreach(var method in methods)
             {
                 // Skip anonymous property accessors (get_Name)
                 if (!method.IsSpecialName)
@@ -472,12 +480,16 @@ namespace ApiModel
                 }
             }
 
-            foreach(var property in type.GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
+            var properties = type.GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+            obj.Properties.Capacity = properties.Length;
+            foreach(var property in properties)
             {
                 obj.Properties.Add(Property.From(property));
             }
 
-            foreach (var evt in type.GetEvents(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
+            var events = type.GetEvents(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+            obj.Events.Capacity = events.Length;
+            foreach (var evt in events)
             {
                 obj.Events.Add(Event.From(evt));
             }

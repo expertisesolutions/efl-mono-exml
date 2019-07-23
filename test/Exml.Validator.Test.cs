@@ -28,7 +28,7 @@ namespace TestSuite
             var issue = issues[0];
 
             Test.AssertEquals(issue.Severity, ValidationIssueSeverity.CriticalError);
-            Test.AssertEquals(issue.Line, 9);
+            Test.AssertEquals(issue.Line, 6);
             Test.AssertEquals(issue.Position, 3);
         }
 
@@ -96,6 +96,25 @@ namespace TestSuite
             Test.AssertEquals(issue.Position, 17);
             Test.AssertEquals(issue.Message, "Property \"invalidated\" is not writeable");
 
+        }
+
+        public static void property_invalid_value_format(string test_folder)
+        {
+            var issues = ExmlValidator.Validate(Path.Combine(test_folder, "invalid_property_value.xml"));
+
+            Test.AssertEquals(issues.Count, 2);
+
+            var issue = issues[0];
+            Test.AssertEquals(issue.Severity, ValidationIssueSeverity.Error);
+            Test.AssertEquals(issue.Line, 8);
+            Test.AssertEquals(issue.Position, 15);
+            Test.AssertEquals(issue.Message, "\"Hello\" is not a valid value for property \"efl:rangeValue\" of type \"System.Double\"");
+
+            issue = issues[1];
+            Test.AssertEquals(issue.Severity, ValidationIssueSeverity.Error);
+            Test.AssertEquals(issue.Line, 9);
+            Test.AssertEquals(issue.Position, 15);
+            Test.AssertEquals(issue.Message, "\"3.3.3\" is not a valid value for property \"efl:rangeValue\" of type \"System.Double\"");
         }
 
     }

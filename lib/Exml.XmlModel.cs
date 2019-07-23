@@ -90,6 +90,13 @@ public class Widget
         var prefix = "efl:";
         var actualName =  attrName.Substring(prefix.Length, 1).ToUpper() + attrName.Substring(prefix.Length + 1);
 
+        if (Attributes.TryGetValue(actualName, out var currentValue))
+        {
+            issues.Add(new ValidatorModel.ValidationIssue($"Attribute \"{attrName}\" is already defined", "",
+                                                          ValidatorModel.ValidationIssueSeverity.Warning));
+            return issues;
+        }
+
         if (actualName.EndsWith("Evt"))
         {
             // Events
@@ -101,13 +108,14 @@ public class Widget
                                                               "",
                                                               ValidatorModel.ValidationIssueSeverity.Error));
             }
-            // TODO: Actually store this event somewhere and its value for code generation.
 
             // TODO: Rule: Is Event name well formed (Valid C# Method name)?
         }
         else
         {
             // Properties
+            ApiModel.TypeRef propertyType = null;
+            bool hasProperty = false;
             var prop = _class.Properties.Find(p => p.Name == actualName);
 
             if (prop == null)
@@ -125,6 +133,11 @@ public class Widget
                                                                   "",
                                                                   ValidatorModel.ValidationIssueSeverity.Error));
                 }
+                else
+                {
+                    propertyType = setter.Parameters[0].Type;
+                    hasProperty = true;
+                }
             }
             else
             {
@@ -134,13 +147,68 @@ public class Widget
                                                                   "",
                                                                   ValidatorModel.ValidationIssueSeverity.Error));
                 }
+                else
+                {
+                    propertyType = prop.Type;
+                    hasProperty = true;
+                }
             }
-            // TODO: Actually store this property somewhere and its value for code generation.
 
-            // TODO: Rule: Is the value acceptable for the property?
+            if (hasProperty)
+            {
+                if (propertyType == null)
+                {
+                    issues.Add(new ValidatorModel.ValidationIssue("Type for \"{attrName}\" is null", "",
+                                                                  ValidatorModel.ValidationIssueSeverity.Error));
+                }
+
+                CheckValueCompatibility(propertyType, attrName, value, ref issues);
+            }
         }
 
+        Attributes[actualName] = value;
+
         return issues;
+    }
+
+    private void CheckValueCompatibility(ApiModel.TypeRef type, string propertyName, string value, ref List<ValidatorModel.ValidationIssue> issues)
+    {
+        try
+        {
+            switch (type.Name)
+            {
+                default: break;
+                case "System.String": break;
+                case "System.Boolean": Boolean.Parse(value); break;
+                case "System.Char": Char.Parse(value); break;
+                case "System.SByte": SByte.Parse(value); break;
+                case "System.Int16": Int16.Parse(value); break;
+                case "System.Int32": Int32.Parse(value); break;
+                case "System.Int64": Int64.Parse(value); break;
+                case "System.Byte": Byte.Parse(value); break;
+                case "System.UInt16": UInt16.Parse(value); break;
+                case "System.UInt32": UInt32.Parse(value); break;
+                case "System.UInt64": UInt64.Parse(value); break;
+                case "System.Single": Single.Parse(value); break;
+                case "System.Double": Double.Parse(value); break;
+                case "System.Decimal": Decimal.Parse(value); break;
+            }
+        }
+        catch (ArgumentNullException)
+        {
+            issues.Add(new ValidatorModel.ValidationIssue($"Property \"{propertyName}\" can not have a null value", "",
+                                                          ValidatorModel.ValidationIssueSeverity.Error));
+        }
+        catch (FormatException)
+        {
+            issues.Add(new ValidatorModel.ValidationIssue($"\"{value}\" is not a valid value for property \"{propertyName}\" of type \"{type.Name}\"", "",
+                                                          ValidatorModel.ValidationIssueSeverity.Error));
+        }
+        catch (OverflowException)
+        {
+            issues.Add(new ValidatorModel.ValidationIssue($"Value overflow for property \"{propertyName}\" of type \"{type.Name}\"", "",
+                                                          ValidatorModel.ValidationIssueSeverity.Error));
+        }
     }
 
     public List<ValidatorModel.ValidationIssue> AddChild(Widget child)

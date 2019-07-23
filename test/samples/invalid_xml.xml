@@ -3,7 +3,4 @@
 <Box efl:orientation="Vertical">
         <Button efl:text="Ok" />
         <Button efl:text="Cancel" />
-        <!-- The tag below should be invalidated as the RangeValue property of
-        Efl.Ui.Spin is a double. !-->
-        <Spin efl:rangeValue="Hello" />
 </exml>
