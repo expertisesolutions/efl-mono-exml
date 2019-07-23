@@ -19,6 +19,12 @@ namespace TestSuite
             Test.AssertEquals(issues.Count, 0);
         }
 
+        public static void valid_with_nested_namespace(string test_folder)
+        {
+            var issues = ExmlValidator.Validate(Path.Combine(test_folder, "valid_nested.xml"));
+            Test.AssertEquals(issues.Count, 0);
+        }
+
         public static void invalid(string test_folder)
         {
             var issues = ExmlValidator.Validate(Path.Combine(test_folder, "invalid_xml.xml"));

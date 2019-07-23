@@ -34,19 +34,15 @@ public class Widget
     public List<ValidatorModel.ValidationIssue> AddInfo(string name, Widget parent)
     {
         // RULE -  is it a valid widget name?
-        string internal_name = name;
         var issues = new List<ValidatorModel.ValidationIssue>();
 
-        if (!internal_name.Contains("."))
-        {
-            internal_name = "Efl.Ui." + internal_name;
-        }
+        var full_name = "Efl.Ui." + name;
 
-        _class = s_api.Classes.Find(c => c.Name == internal_name);
+        _class = s_api.Classes.Find(c => c.Name == full_name || c.Name == name);
 
         if (_class == null)
         {
-            issues.Add(new ValidatorModel.ValidationIssue($"Unknown type {name}", "Type could not be found in the Efl.Ui namespace",
+            issues.Add(new ValidatorModel.ValidationIssue($"Unknown type {name}", "Type could not be found either in the Efl.Ui namespace or fully qualified",
                                                           ValidatorModel.ValidationIssueSeverity.Error));
         }
 
