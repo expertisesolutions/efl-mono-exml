@@ -126,6 +126,8 @@ public class TestRunner
     {
         // FIXME control verbosity with `meson test -v`
         Exml.Logging.Logger.AddConsoleLogger();
+        Exml.Logging.Logger.SetLevelFromEnvironment();
+
         string test_folder = args[0];
         bool failed = false;
 
