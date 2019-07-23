@@ -5,5 +5,5 @@
         <Button efl:text="Cancel" />
         <!-- The tag below should be invalidated as the RangeValue property of
         Efl.Ui.Spin is a double. !-->
-        <Spin efl:range_value="Hello" />
+        <Spin efl:rangeValue="Hello" />
 </exml>

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <exml xmlns:efl="http://www.enlightenment.org/EXML">
-<Button>
+<Box efl:orientation="Vertical">
         <Button efl:text="Ok" />
-        <Button efl:text="Cancel" />
-</Button>
+        <Button efl:nontext="Cancel" efl:wtfEvt="SomeCallback"/>
+</Box>
 </exml>
