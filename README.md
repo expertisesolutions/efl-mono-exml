@@ -5,7 +5,7 @@ This is a suite of libraries and tools to work with EFL#-based XML UI files.
 It will be composed of:
 
 - [x] Helper tool to extract API information from EFL# based libraries.
-- [ ] XML validation library
+- [x] XML validation library (Mostly done. Extra work on this will be done as we get feedback from the compiler tasks)
 - [ ] Code generation compiler
 - [ ] Other tools
 
