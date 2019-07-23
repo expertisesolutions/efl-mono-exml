@@ -126,9 +126,17 @@ public class Widget
                                                                   ValidatorModel.ValidationIssueSeverity.Error));
                 }
             }
+            else
+            {
+                if (!prop.HasSet)
+                {
+                    issues.Add(new ValidatorModel.ValidationIssue($"Property \"{attrName.Substring(prefix.Length)}\" is not writeable",
+                                                                  "",
+                                                                  ValidatorModel.ValidationIssueSeverity.Error));
+                }
+            }
             // TODO: Actually store this property somewhere and its value for code generation.
 
-            // TODO: Rule: Is the property writable?
             // TODO: Rule: Is the value acceptable for the property?
         }
 

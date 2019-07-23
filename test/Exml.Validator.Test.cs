@@ -83,6 +83,21 @@ namespace TestSuite
             Test.AssertEquals(issue.Message, "Event \"wtfEvt\" does not exist in \"Button\"");
         }
 
+        public static void read_only_property(string test_folder)
+        {
+            var issues = ExmlValidator.Validate(Path.Combine(test_folder, "read_only_property.xml"));
+
+            Test.AssertEquals(issues.Count, 1);
+
+            var issue = issues[0];
+            Console.WriteLine($"Issue {issue}");
+            Test.AssertEquals(issue.Severity, ValidationIssueSeverity.Error);
+            Test.AssertEquals(issue.Line, 4);
+            Test.AssertEquals(issue.Position, 17);
+            Test.AssertEquals(issue.Message, "Property \"invalidated\" is not writeable");
+
+        }
+
     }
 }
 
