@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Xml;
 using System.Xml.Schema;
+using Xunit;
 
 using Exml.Validator;
 using Exml.ValidatorModel;
@@ -125,58 +126,58 @@ namespace TestSuite
     }
 }
 
-public class TestRunner
-{
-    static void Main(string[] args)
-    {
-        // FIXME control verbosity with `meson test -v`
-        Exml.Logging.Logger.AddConsoleLogger();
-        Exml.Logging.Logger.SetLevelFromEnvironment();
+/* public class TestRunner */
+/* { */
+/*     static void Main(string[] args) */
+/*     { */
+/*         // FIXME control verbosity with `meson test -v` */
+/*         Exml.Logging.Logger.AddConsoleLogger(); */
+/*         Exml.Logging.Logger.SetLevelFromEnvironment(); */
 
-        string test_folder = args[0];
-        bool failed = false;
+/*         string test_folder = args[0]; */
+/*         bool failed = false; */
 
-        var filename = args[1];
-        var api = Exml.ApiModel.API.Parse(filename);
+/*         var filename = args[1]; */
+/*         var api = Exml.ApiModel.API.Parse(filename); */
 
-        // Make sure we use the Reference API when validating stuff
-        Exml.XmlModel.Widget.SetApi(api);
+/*         // Make sure we use the Reference API when validating stuff */
+/*         Exml.XmlModel.Widget.SetApi(api); */
 
-        var tcases = from t in Assembly.GetExecutingAssembly().GetTypes()
-            where t.IsClass && t.Namespace == "TestSuite"
-            select t;
+/*         var tcases = from t in Assembly.GetExecutingAssembly().GetTypes() */
+/*             where t.IsClass && t.Namespace == "TestSuite" */
+/*             select t; */
 
-        foreach (var tcase in tcases)
-        {
-            var tcaseName = tcase.Name;
+/*         foreach (var tcase in tcases) */
+/*         { */
+/*             var tcaseName = tcase.Name; */
 
-            var tests = tcase.GetMethods(BindingFlags.Public | BindingFlags.Static);
+/*             var tests = tcase.GetMethods(BindingFlags.Public | BindingFlags.Static); */
 
-            foreach (var test in tests)
-            {
-                var testName = test.Name;
+/*             foreach (var test in tests) */
+/*             { */
+/*                 var testName = test.Name; */
 
-                Console.WriteLine($"[BEGIN   ] {tcaseName}.{testName}");
-                try
-                {
-                    test.Invoke(null, new object[]{test_folder});
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"[    FAIL] {tcaseName}.{testName}");
-                    Console.WriteLine(ex.InnerException.ToString());
-                    failed = true;
-                    continue;
-                }
+/*                 Console.WriteLine($"[BEGIN   ] {tcaseName}.{testName}"); */
+/*                 try */
+/*                 { */
+/*                     test.Invoke(null, new object[]{test_folder}); */
+/*                 } */
+/*                 catch (Exception ex) */
+/*                 { */
+/*                     Console.WriteLine($"[    FAIL] {tcaseName}.{testName}"); */
+/*                     Console.WriteLine(ex.InnerException.ToString()); */
+/*                     failed = true; */
+/*                     continue; */
+/*                 } */
 
-                Console.WriteLine($"[    PASS] {tcaseName}.{testName}");
-            }
-        }
+/*                 Console.WriteLine($"[    PASS] {tcaseName}.{testName}"); */
+/*             } */
+/*         } */
 
-        if (failed)
-        {
-            Environment.Exit(-1);
-        }
-    }
-}
+/*         if (failed) */
+/*         { */
+/*             Environment.Exit(-1); */
+/*         } */
+/*     } */
+/* } */
 

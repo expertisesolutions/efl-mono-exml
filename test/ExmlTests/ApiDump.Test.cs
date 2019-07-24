@@ -2,6 +2,7 @@ using System;
 using System.Reflection;
 using System.Linq;
 using System.Collections.Generic;
+using Xunit;
 
 using ApiModel = Exml.ApiModel;
 
@@ -189,49 +190,49 @@ namespace TestSuite
     }
 }
 
-public class TestRunner
-{
-    static void Main(string[] args)
-    {
-        // FIXME control verbosity with `meson test -v`
-        /* ApiDump.Logging.Logger.AddConsoleLogger(); */
-        var api = ApiModel.API.Parse(args[0]);
-        bool failed = false;
+/* public class TestRunner */
+/* { */
+/*     static void Main(string[] args) */
+/*     { */
+/*         // FIXME control verbosity with `meson test -v` */
+/*         /1* ApiDump.Logging.Logger.AddConsoleLogger(); *1/ */
+/*         var api = ApiModel.API.Parse(args[0]); */
+/*         bool failed = false; */
 
-        var tcases = from t in Assembly.GetExecutingAssembly().GetTypes()
-            where t.IsClass && t.Namespace == "TestSuite"
-            select t;
+/*         var tcases = from t in Assembly.GetExecutingAssembly().GetTypes() */
+/*             where t.IsClass && t.Namespace == "TestSuite" */
+/*             select t; */
 
-        foreach (var tcase in tcases)
-        {
-            var tcaseName = tcase.Name;
+/*         foreach (var tcase in tcases) */
+/*         { */
+/*             var tcaseName = tcase.Name; */
 
-            var tests = tcase.GetMethods(BindingFlags.Public | BindingFlags.Static);
+/*             var tests = tcase.GetMethods(BindingFlags.Public | BindingFlags.Static); */
 
-            foreach (var test in tests)
-            {
-                var testName = test.Name;
+/*             foreach (var test in tests) */
+/*             { */
+/*                 var testName = test.Name; */
 
-                Console.WriteLine($"[BEGIN   ] {tcaseName}.{testName}");
-                try
-                {
-                    test.Invoke(null, new object[]{api});
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"[    FAIL] {tcaseName}.{testName}");
-                    Console.WriteLine(ex.InnerException.ToString());
-                    failed = true;
-                    continue;
-                }
+/*                 Console.WriteLine($"[BEGIN   ] {tcaseName}.{testName}"); */
+/*                 try */
+/*                 { */
+/*                     test.Invoke(null, new object[]{api}); */
+/*                 } */
+/*                 catch (Exception ex) */
+/*                 { */
+/*                     Console.WriteLine($"[    FAIL] {tcaseName}.{testName}"); */
+/*                     Console.WriteLine(ex.InnerException.ToString()); */
+/*                     failed = true; */
+/*                     continue; */
+/*                 } */
 
-                Console.WriteLine($"[    PASS] {tcaseName}.{testName}");
-            }
-        }
+/*                 Console.WriteLine($"[    PASS] {tcaseName}.{testName}"); */
+/*             } */
+/*         } */
 
-        if (failed)
-        {
-            Environment.Exit(-1);
-        }
-    }
-}
+/*         if (failed) */
+/*         { */
+/*             Environment.Exit(-1); */
+/*         } */
+/*     } */
+/* } */
