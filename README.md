@@ -11,15 +11,12 @@ It will be composed of:
 
 # Building and testing
 
-EXML# currently uses [Meson](https://mesonbuild.com/), Mono and EFL# (the latter
-for testing purposes for now, builtin) for building. Dotnet core integration is
-also planned.
+EXML# currently uses [Dotnet Core](https://docs.microsoft.com/en-us/dotnet/core/)
+and EFL# (the latter for testing purposes for now, builtin) for building.
 
 ```
-$ meson build
-$ cd build
-$ ninja
-$ meson test
+$ dotnet build
+$ dotnet test
 ```
 
 # EXML# Specification
