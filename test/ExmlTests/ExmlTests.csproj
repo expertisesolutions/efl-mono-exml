@@ -16,4 +16,18 @@
     <ProjectReference Include="..\..\src\Exml\Exml.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+	  <EmbeddedResource Include="../samples/efl_mono.dll" />
+
+	  <EmbeddedResource Include="../samples/hello_valid.xml"/>
+	  <EmbeddedResource Include="../samples/invalid_container.xml"/>
+	  <EmbeddedResource Include="../samples/invalid_property_value.xml"/>
+	  <EmbeddedResource Include="../samples/invalid_xml.xml"/>
+	  <EmbeddedResource Include="../samples/nested.xml"/>
+	  <EmbeddedResource Include="../samples/non_existent_members.xml"/>
+	  <EmbeddedResource Include="../samples/read_only_property.xml"/>
+	  <EmbeddedResource Include="../samples/unknown_widget.xml"/>
+	  <EmbeddedResource Include="../samples/valid_nested.xml"/>
+  </ItemGroup>
+
 </Project>

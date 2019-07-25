@@ -13,9 +13,15 @@ namespace TestSuite
     {
         public static Exml.ApiModel.API Api {
             get {
-                return Exml.ApiModel.API.Parse(Assembly.GetExecutingAssembly());
+                if (s_api == null)
+                {
+                    s_api = Exml.ApiModel.API.Parse(Assembly.GetExecutingAssembly());
+                }
+
+                return s_api;
             }
         }
+        private static ApiModel.API s_api = null;
     }
 
     [TestFixture]

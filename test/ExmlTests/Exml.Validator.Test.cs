@@ -6,177 +6,173 @@ using System.IO;
 using System.Xml;
 using System.Xml.Schema;
 
+using NUnit.Framework;
+
 using Exml.Validator;
 using Exml.ValidatorModel;
+using ApiModel = Exml.ApiModel;
 
 namespace TestSuite
 {
-    public class Valid_Exml
+
+    public class EflSharpProvider
     {
-        public static void valid(string test_folder)
+        public static void EnsureApiLoaded()
         {
-            var issues = ExmlValidator.Validate(Path.Combine(test_folder, "hello_valid.xml"));
-            Test.AssertEquals(issues.Count, 0);
+            if (s_api != null)
+            {
+                return;
+            }
+
+            var assembly = Assembly.GetExecutingAssembly();
+            using (var stream = assembly.GetManifestResourceStream("ExmlTests.efl_mono.dll"))
+            {
+                byte[] data = new byte[stream.Length];
+                stream.Read(data, 0, data.Length);
+                var eflAssembly = Assembly.Load(data);
+                s_api = ApiModel.API.Parse(eflAssembly);
+            }
+
+            Exml.XmlModel.Widget.SetApi(s_api);
         }
 
-        public static void valid_with_nested_namespace(string test_folder)
+        private static Exml.ApiModel.API s_api = null;
+    }
+
+    [TestFixture]
+    public class ExmlValidation
+    {
+
+        public ExmlValidation()
         {
-            var issues = ExmlValidator.Validate(Path.Combine(test_folder, "valid_nested.xml"));
-            Test.AssertEquals(issues.Count, 0);
+            EflSharpProvider.EnsureApiLoaded();
         }
 
-        public static void invalid(string test_folder)
+        private List<Exml.ValidatorModel.ValidationIssue> GetIssues(string resourceName)
         {
-            var issues = ExmlValidator.Validate(Path.Combine(test_folder, "invalid_xml.xml"));
+            var assembly = Assembly.GetExecutingAssembly();
+            using (var stream = assembly.GetManifestResourceStream("ExmlTests." + resourceName))
+            {
+                return ExmlValidator.Validate(stream);
+            }
+        }
 
-            Test.AssertEquals(issues.Count, 1);
+        [Test]
+        public void valid()
+        {
+            var issues = GetIssues("hello_valid.xml");
+            Assert.That(issues, Is.Empty);
+        }
+
+        [Test]
+        public void valid_with_nested_namespace()
+        {
+            var issues = GetIssues("valid_nested.xml");
+            Assert.That(issues, Is.Empty);
+        }
+
+        [Test]
+        public void invalid()
+        {
+            var issues = GetIssues("invalid_xml.xml");
+
+            Assert.That(issues.Count, Is.EqualTo(1));
 
             var issue = issues[0];
 
-            Test.AssertEquals(issue.Severity, ValidationIssueSeverity.CriticalError);
-            Test.AssertEquals(issue.Line, 6);
-            Test.AssertEquals(issue.Position, 3);
+            Assert.That(issue.Severity, Is.EqualTo(ValidationIssueSeverity.CriticalError));
+            Assert.That(issue.Line, Is.EqualTo(6));
+            Assert.That(issue.Position, Is.EqualTo(3));
         }
 
-        public static void unkown_tag(string test_folder)
+        [Test]
+        public void unkown_tag()
         {
-            var issues = ExmlValidator.Validate(Path.Combine(test_folder, "unknown_widget.xml"));
+            var issues = GetIssues("unknown_widget.xml");
 
-            Test.AssertEquals(issues.Count, 1);
+            Assert.That(issues.Count, Is.EqualTo(1));
             var issue = issues[0];
-            Test.AssertEquals(issue.Severity, ValidationIssueSeverity.Error);
-            Test.AssertEquals(issue.Line, 4);
-            Test.AssertEquals(issue.Position, 10);
-            Test.AssertEquals(issue.Message, "Unknown type MyUnknownButton");
+            Assert.That(issue.Severity, Is.EqualTo(ValidationIssueSeverity.Error));
+            Assert.That(issue.Line, Is.EqualTo(4));
+            Assert.That(issue.Position, Is.EqualTo(10));
+            Assert.That(issue.Message, Is.EqualTo("Unknown type MyUnknownButton"));
         }
 
-        public static void invalid_container(string test_folder)
+        [Test]
+        public void invalid_container()
         {
-            var issues = ExmlValidator.Validate(Path.Combine(test_folder, "invalid_container.xml"));
+            var issues = GetIssues("invalid_container.xml");
 
-            Test.AssertEquals(issues.Count, 2);
+            Assert.That(issues.Count, Is.EqualTo(2));
             var issue = issues[0];
-            Test.AssertEquals(issue.Severity, ValidationIssueSeverity.Error);
-            Test.AssertEquals(issue.Line, 4);
-            Test.AssertEquals(issue.Position, 10);
-            Test.AssertEquals(issue.Message, "Type Button is not a container");
+            Assert.That(issue.Severity, Is.EqualTo(ValidationIssueSeverity.Error));
+            Assert.That(issue.Line, Is.EqualTo(4));
+            Assert.That(issue.Position, Is.EqualTo(10));
+            Assert.That(issue.Message, Is.EqualTo("Type Button is not a container"));
 
             issue = issues[1];
-            Test.AssertEquals(issue.Severity, ValidationIssueSeverity.Error);
-            Test.AssertEquals(issue.Line, 5);
-            Test.AssertEquals(issue.Position, 10);
-            Test.AssertEquals(issue.Message, "Type Button is not a container");
+            Assert.That(issue.Severity, Is.EqualTo(ValidationIssueSeverity.Error));
+            Assert.That(issue.Line, Is.EqualTo(5));
+            Assert.That(issue.Position, Is.EqualTo(10));
+            Assert.That(issue.Message, Is.EqualTo("Type Button is not a container"));
         }
 
-        public static void non_existent_properties(string test_folder)
+        [Test]
+        public void non_existent_properties()
         {
-            var issues = ExmlValidator.Validate(Path.Combine(test_folder, "non_existent_members.xml"));
+            var issues = GetIssues("non_existent_members.xml");
 
-            Test.AssertEquals(issues.Count, 2);
+            Assert.That(issues.Count, Is.EqualTo(2));
 
             // Property issue
             var issue = issues[0];
-            Test.AssertEquals(issue.Severity, ValidationIssueSeverity.Error);
-            Test.AssertEquals(issue.Line, 5);
-            Test.AssertEquals(issue.Position, 17);
-            Test.AssertEquals(issue.Message, "Property \"nontext\" does not exist in \"Button\"");
+            Assert.That(issue.Severity, Is.EqualTo(ValidationIssueSeverity.Error));
+            Assert.That(issue.Line, Is.EqualTo(5));
+            Assert.That(issue.Position, Is.EqualTo(17));
+            Assert.That(issue.Message, Is.EqualTo("Property \"nontext\" does not exist in \"Button\""));
 
             // Event issue
             issue = issues[1];
-            Test.AssertEquals(issue.Severity, ValidationIssueSeverity.Error);
-            Test.AssertEquals(issue.Line, 5);
-            Test.AssertEquals(issue.Position, 38);
-            Test.AssertEquals(issue.Message, "Event \"wtfEvt\" does not exist in \"Button\"");
+            Assert.That(issue.Severity, Is.EqualTo(ValidationIssueSeverity.Error));
+            Assert.That(issue.Line, Is.EqualTo(5));
+            Assert.That(issue.Position, Is.EqualTo(38));
+            Assert.That(issue.Message, Is.EqualTo("Event \"wtfEvt\" does not exist in \"Button\""));
         }
 
-        public static void read_only_property(string test_folder)
+        [Test]
+        public void read_only_property()
         {
-            var issues = ExmlValidator.Validate(Path.Combine(test_folder, "read_only_property.xml"));
+            var issues = GetIssues("read_only_property.xml");
 
-            Test.AssertEquals(issues.Count, 1);
+            Assert.That(issues.Count, Is.EqualTo(1));
 
             var issue = issues[0];
-            Test.AssertEquals(issue.Severity, ValidationIssueSeverity.Error);
-            Test.AssertEquals(issue.Line, 4);
-            Test.AssertEquals(issue.Position, 17);
-            Test.AssertEquals(issue.Message, "Property \"invalidated\" is not writeable");
+            Assert.That(issue.Severity, Is.EqualTo(ValidationIssueSeverity.Error));
+            Assert.That(issue.Line, Is.EqualTo(4));
+            Assert.That(issue.Position, Is.EqualTo(17));
+            Assert.That(issue.Message, Is.EqualTo("Property \"invalidated\" is not writeable"));
 
         }
 
-        public static void property_invalid_value_format(string test_folder)
+        [Test]
+        public void property_invalid_value_format()
         {
-            var issues = ExmlValidator.Validate(Path.Combine(test_folder, "invalid_property_value.xml"));
+            var issues = GetIssues("invalid_property_value.xml");
 
-            Test.AssertEquals(issues.Count, 2);
+            Assert.That(issues.Count, Is.EqualTo(2));
 
             var issue = issues[0];
-            Test.AssertEquals(issue.Severity, ValidationIssueSeverity.Error);
-            Test.AssertEquals(issue.Line, 8);
-            Test.AssertEquals(issue.Position, 15);
-            Test.AssertEquals(issue.Message, "\"Hello\" is not a valid value for property \"efl:rangeValue\" of type \"System.Double\"");
+            Assert.That(issue.Severity, Is.EqualTo(ValidationIssueSeverity.Error));
+            Assert.That(issue.Line, Is.EqualTo(8));
+            Assert.That(issue.Position, Is.EqualTo(15));
+            Assert.That(issue.Message, Is.EqualTo("\"Hello\" is not a valid value for property \"efl:rangeValue\" of type \"System.Double\""));
 
             issue = issues[1];
-            Test.AssertEquals(issue.Severity, ValidationIssueSeverity.Error);
-            Test.AssertEquals(issue.Line, 9);
-            Test.AssertEquals(issue.Position, 15);
-            Test.AssertEquals(issue.Message, "\"3.3.3\" is not a valid value for property \"efl:rangeValue\" of type \"System.Double\"");
+            Assert.That(issue.Severity, Is.EqualTo(ValidationIssueSeverity.Error));
+            Assert.That(issue.Line, Is.EqualTo(9));
+            Assert.That(issue.Position, Is.EqualTo(15));
+            Assert.That(issue.Message, Is.EqualTo("\"3.3.3\" is not a valid value for property \"efl:rangeValue\" of type \"System.Double\""));
         }
-
     }
 }
-
-/* public class TestRunner */
-/* { */
-/*     static void Main(string[] args) */
-/*     { */
-/*         // FIXME control verbosity with `meson test -v` */
-/*         Exml.Logging.Logger.AddConsoleLogger(); */
-/*         Exml.Logging.Logger.SetLevelFromEnvironment(); */
-
-/*         string test_folder = args[0]; */
-/*         bool failed = false; */
-
-/*         var filename = args[1]; */
-/*         var api = Exml.ApiModel.API.Parse(filename); */
-
-/*         // Make sure we use the Reference API when validating stuff */
-/*         Exml.XmlModel.Widget.SetApi(api); */
-
-/*         var tcases = from t in Assembly.GetExecutingAssembly().GetTypes() */
-/*             where t.IsClass && t.Namespace == "TestSuite" */
-/*             select t; */
-
-/*         foreach (var tcase in tcases) */
-/*         { */
-/*             var tcaseName = tcase.Name; */
-
-/*             var tests = tcase.GetMethods(BindingFlags.Public | BindingFlags.Static); */
-
-/*             foreach (var test in tests) */
-/*             { */
-/*                 var testName = test.Name; */
-
-/*                 Console.WriteLine($"[BEGIN   ] {tcaseName}.{testName}"); */
-/*                 try */
-/*                 { */
-/*                     test.Invoke(null, new object[]{test_folder}); */
-/*                 } */
-/*                 catch (Exception ex) */
-/*                 { */
-/*                     Console.WriteLine($"[    FAIL] {tcaseName}.{testName}"); */
-/*                     Console.WriteLine(ex.InnerException.ToString()); */
-/*                     failed = true; */
-/*                     continue; */
-/*                 } */
-
-/*                 Console.WriteLine($"[    PASS] {tcaseName}.{testName}"); */
-/*             } */
-/*         } */
-
-/*         if (failed) */
-/*         { */
-/*             Environment.Exit(-1); */
-/*         } */
-/*     } */
-/* } */
 
