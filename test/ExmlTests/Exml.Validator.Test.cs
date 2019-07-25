@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Xml;
 using System.Xml.Schema;
-using Xunit;
 
 using Exml.Validator;
 using Exml.ValidatorModel;

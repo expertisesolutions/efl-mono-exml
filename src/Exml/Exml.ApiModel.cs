@@ -566,6 +566,11 @@ namespace ApiModel
         public static API Parse(string filename)
         {
             var assembly = Assembly.LoadFile(filename);
+            return Parse(assembly);
+        }
+
+        public static API Parse(Assembly assembly)
+        {
             var ret = new API();
 
             foreach (var exportedType in assembly.GetExportedTypes())
@@ -599,14 +604,21 @@ namespace ApiModel
 
         public void Serialize(System.IO.Stream stream)
         {
-            BinaryFormatter formatter = new BinaryFormatter();
-            formatter.Serialize(stream, this);
+            // Dotnet core has no support for serializing System.Type directly. Disabling for now.
+            // https://github.com/dotnet/corefx/issues/23213
+
+            /* BinaryFormatter formatter = new BinaryFormatter(); */
+            /* formatter.Serialize(stream, this); */
         }
 
         public static API Deserialize(System.IO.Stream stream)
         {
-            BinaryFormatter formatter = new BinaryFormatter();
-            return (API)formatter.Deserialize(stream);
+            // Dotnet core has no support for serializing System.Type directly. Disabling for now.
+            // https://github.com/dotnet/corefx/issues/23213
+
+            /* BinaryFormatter formatter = new BinaryFormatter(); */
+            /* return (API)formatter.Deserialize(stream); */
+            throw new NotImplementedException("Not yet implemented.");
         }
     }
 
